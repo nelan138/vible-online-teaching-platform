@@ -1,6 +1,6 @@
 <template>
    <UContainer>
-      <p>Hello, World!</p>
+      <p><UIcon name="lucide:flag" /> Hello, World! <UIcon name="lucide:earth" /></p>
    </UContainer>
 </template>
 

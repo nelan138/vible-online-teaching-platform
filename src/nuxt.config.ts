@@ -6,6 +6,7 @@ export default defineNuxtConfig({
       "@nuxt/ui",
       "@nuxt/image",
       "@pinia/nuxt",
+      "@nuxt/icon/module",
    ],
    css: ["~/assets/css/main.css"],
    compatibilityDate: "2025-07-15",
