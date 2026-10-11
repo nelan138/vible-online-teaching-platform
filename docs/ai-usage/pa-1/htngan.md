@@ -7,3 +7,8 @@ Verify: against the official documentation
 - removed plugins/
 - removed app.config.ts
 
+### Move dependencies devDependencies
+
+Tools: Gemini, Github Copilot
+
+Verify: reddit community opinions
