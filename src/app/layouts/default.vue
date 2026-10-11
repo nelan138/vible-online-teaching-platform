@@ -1,14 +1,16 @@
 <template>
    <div>
-      <UHeader> </UHeader>
+      <UHeader>
+         <template #right>
+            <UColorModeButton />
+         </template>
+      </UHeader>
 
       <UMain>
-         <UContainer>
-            <slot />
-         </UContainer>
+         <slot />
       </UMain>
 
-      <UFooter> </UFooter>
+      <UFooter />
    </div>
 </template>
 
