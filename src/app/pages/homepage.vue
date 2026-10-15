@@ -14,7 +14,7 @@
                trailing-icon="lucide:arrow-right"
                label="View All"
                variant="link"
-               @click="navigateTo('/courses')"
+               @click="navigateTo('/courses/my_courses')"
             />
          </div>
 
