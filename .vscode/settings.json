@@ -7,5 +7,5 @@
    },
    "tailwindCSS.classAttributes": ["class", "ui"],
    "tailwindCSS.classFunctions": ["defineAppConfig"],
-   "cSpell.words": ["lucide"]
+   "cSpell.words": ["lucide", "Vible"]
 }
