@@ -10,6 +10,12 @@
       <section class="py-10">
          <div class="mb-6 flex items-center justify-between">
             <h2 class="text-xl font-semibold text-highlighted">Your Courses</h2>
+            <UButton
+               trailing-icon="lucide:arrow-right"
+               label="View All"
+               variant="link"
+               @click="navigateTo('/courses')"
+            />
          </div>
 
          <div v-if="coursesStore.courses.length" class="grid gap-4 grid-cols-1">
