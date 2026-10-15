@@ -47,6 +47,8 @@ vible-online-teaching-platform/
 
 ### Installation
 
+Only run the following commands in `src/`. DO NOT run them in the root directory !.
+
 ```bash
 # Install dependencies
 npm install
