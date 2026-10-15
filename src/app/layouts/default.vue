@@ -1,6 +1,6 @@
 <template>
    <div>
-      <UHeader>
+      <UHeader to="/homepage">
          <template #right>
             <UColorModeButton />
          </template>

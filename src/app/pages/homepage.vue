@@ -7,19 +7,9 @@
 
       <USeparator />
 
-      <!-- Courses -->
       <section class="py-10">
          <div class="mb-6 flex items-center justify-between">
             <h2 class="text-xl font-semibold text-highlighted">Your Courses</h2>
-            <UButton
-               variant="ghost"
-               color="neutral"
-               label="View all"
-               icon="i-lucide-chevron-right"
-               trailing
-               to="/courses"
-               size="sm"
-            />
          </div>
 
          <div v-if="coursesStore.courses.length" class="grid gap-4 grid-cols-1">
@@ -28,7 +18,7 @@
                :key="course.id"
                :title="course.name"
                :description="course.description"
-               :to="`/courses/${course.id}`"
+               @click="navigateTo(`/courses/${course.id}`)"
             />
          </div>
 

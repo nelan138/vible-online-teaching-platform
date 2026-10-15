@@ -1,6 +1,6 @@
 <template>
    <div>
-      <UHeader>
+      <UHeader to="/login">
          <template #right>
             <UColorModeButton />
          </template>
