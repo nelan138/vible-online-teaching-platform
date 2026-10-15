@@ -10,12 +10,11 @@
          </template>
 
          <template #right>
+            <UButton icon="lucide:calendar-clock" variant="ghost" color="neutral" to="/search" />
+            <UButton icon="lucide:bell" variant="ghost" color="neutral" to="/search" />
+            <UButton icon="lucide:search" variant="ghost" color="neutral" to="/search" />
             <UColorModeButton />
             <UButton icon="i-lucide-user-round" variant="ghost" color="neutral" to="/profile/my_profile" />
-         </template>
-
-         <template #body>
-            <UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
          </template>
       </UHeader>
 
