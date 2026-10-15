@@ -1,6 +1,6 @@
 # Vible Online Teaching Platform
 
-A Next Generation Online Teaching Platform built with **Nuxt 3** and **Vue 3**.
+A Next Generation Online Teaching Platform built with **Nuxt 4** and **Vue 3**.
 
 ## 📋 Overview
 
@@ -8,9 +8,9 @@ Vible is an online teaching platform designed to facilitate remote education, fe
 
 ## 🏗️ Tech Stack
 
-- **Framework**: Nuxt 3 (Vue 3)
-- **Language**: TypeScript
-- **Styling**: CSS
+- **Framework**: Nuxt 4 (Vue 3)
+- **Language**: TypeScript & Javascript
+- **Styling**: Tailwindcss (CSS)
 - **Package Manager**: npm
 - **Code Quality**: ESLint, Prettier
 
@@ -42,7 +42,7 @@ vible-online-teaching-platform/
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
@@ -59,6 +59,10 @@ npm run build
 
 # Start production server
 npm run preview
+
+# Postinstall
+npm run prepare
+npm run postinstall
 ```
 
 ## 📝 Development Notes
@@ -76,4 +80,4 @@ This project is developed as part of CSC13002 - Introduction to Software Enginee
 
 ---
 
-Built with ❤️ using Nuxt 3
+Built with ❤️ using Nuxt 4
