@@ -11,11 +11,11 @@
          />
       </UPageCard>
 
-      <div class="flex flex-col items-center gap-2 rounded-lg border border-dashed border-neutral-300 dark:border-neutral-700 p-3 text-xs text-neutral-500">
-         <span class="text-[11px] font-medium tracking-wide text-neutral-400 dark:text-neutral-500">This is for debugging only</span>
+      <div class="flex flex-col items-center gap-2 rounded-lg border border-dashed border-error p-3 text-xs text-error">
+         <span class="text-[11px] font-medium tracking-wide text-error">This is for debugging only</span>
          <div class="flex items-center gap-2">
-            <UButton size="xs" variant="subtle" color="neutral" label="homepage" icon="lucide:house" @click="navigateTo('/homepage')" />
-            <UButton size="xs" variant="subtle" color="neutral" label="admin" icon="lucide:badge-alert" @click="navigateTo('/admin')" />
+            <UButton size="xs" variant="subtle" color="error" label="homepage" icon="lucide:house" @click="navigateTo('/homepage')" />
+            <UButton size="xs" variant="subtle" color="error" label="admin" icon="lucide:badge-alert" @click="navigateTo('/admin')" />
          </div>
       </div>
    </div>
