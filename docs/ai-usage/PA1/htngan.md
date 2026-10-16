@@ -8,7 +8,8 @@
 
 ---
 
-### Task / Purpose: Build a work breakdown structure
+
+### Task / Purpose: Help fill in `4.1 Process and Phase Gates`
 
 - Tools: Gemini
 
