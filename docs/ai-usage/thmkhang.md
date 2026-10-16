@@ -1,0 +1,7 @@
+# AI Usage Log - PA1 (Trần Hoàng Minh Khang)
+
+| # | Member | Tool | Task / purpose | How the output was verified and changed |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Trần Hoàng Minh Khang | Gemini | Draft comparison matrices (pros, cons, and technical criteria) for Database & ORM (PostgreSQL, MongoDB, Firebase, Drizzle, Prisma), Hosting (Cloudflare, Vercel, Render, Railway), and Testing (`@nuxt/test-utils`, Vitest, Jest, Playwright, Cypress) in Section 3.2. | Reviewed with Trương Hiển Long and Huỳnh Trung Ngạn; cross-checked technical constraints against our Nuxt 4 repository configuration (`nuxt.config.ts`, `package.json`) and finalized PostgreSQL + Drizzle/Prisma, Cloudflare, and Vitest. |
+| 2 | Trần Hoàng Minh Khang | Gemini | Generate initial C4 System Context (Level 1) diagram structure (XML/Mermaid) and draft descriptions for Section 3.1 (Preliminary Architecture) and Section 3.3 (Hardware and Operating Environment). | Imported the diagram into draw.io (`app.diagrams.net`), manually refined the layout, colors, actors (Teacher, Student, System Admin), and external systems (Google OAuth, Cloudflare R2, Email Service) to match PA0 scope boundaries. |
+| 3 | Trần Hoàng Minh Khang | Kimi | Brainstorm technology and organisational risks, probability/loss ratings, and mitigation strategies for Section 5 (Risk Management). | Verified and adjusted risk exposure scores and mitigation plans with the Project Manager (Huỳnh Trung Ngạn) to align with the 3-week implementation schedule and Cloudflare Edge runtime constraints. |
