@@ -1,24 +1,22 @@
 # Nuxt dev/build outputs
-src/web/.output
-src/web/.data
-src/web/.nuxt
-src/web/.nitro
-src/web/.cache
-src/web/dist
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
 
 # Node dependencies
-src/web/node_modules
+node_modules
 
 # Logs
-src/web/logs
+logs
 *.log
 
 # Misc
 .DS_Store
-.fleet
-.idea
 
 # Local env files
-src/web/.env
-src/web/.env.*
-!src/web/.env.example
+.env
+.env.*
+!.env.example
