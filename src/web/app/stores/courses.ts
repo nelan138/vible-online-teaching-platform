@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 export type Course = {
    id: number;
    title: string;
-   teachers: string;
+   teacher: string;
 };
 
 export const useCoursesStore = defineStore("courses", () => {
@@ -11,27 +11,27 @@ export const useCoursesStore = defineStore("courses", () => {
       {
          id: 1,
          title: "Course A",
-         teachers: "Teacher A",
+         teacher: "Teacher A",
       },
       {
          id: 2,
          title: "Course B",
-         teachers: "Teacher B",
+         teacher: "Teacher B",
       },
       {
          id: 3,
          title: "Course C",
-         teachers: "Teacher C",
+         teacher: "Teacher C",
       },
       {
          id: 4,
          title: "Course D",
-         teachers: "Teacher D",
+         teacher: "Teacher D",
       },
       {
          id: 5,
          title: "Course E",
-         teachers: "Teacher E",
+         teacher: "Teacher E",
       },
    ]);
 

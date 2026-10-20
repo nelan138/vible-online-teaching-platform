@@ -2,7 +2,7 @@
    <UContainer class="py-6">
       <div v-if="course">
          <h2>{{ course.title }}</h2>
-         <p>Teachers: {{ course.teachers }}</p>
+         <p>Teachers: {{ course.teacher }}</p>
       </div>
 
       <div v-else>

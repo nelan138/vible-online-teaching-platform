@@ -58,7 +58,7 @@
                      </NuxtLink>
 
                      <p class="text-sm text-muted mt-1">
-                        {{ course.teachers }}
+                        {{ course.teacher }}
                      </p>
                   </template>
 

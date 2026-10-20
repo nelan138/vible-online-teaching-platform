@@ -8,7 +8,7 @@
                {{ course.title }}
             </NuxtLink>
          </h3>
-         <p>Teachers: {{ course.teachers }}</p>
+         <p>Teachers: {{ course.teacher }}</p>
       </div>
    </UContainer>
 </template>
