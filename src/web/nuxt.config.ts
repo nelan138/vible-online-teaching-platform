@@ -6,6 +6,7 @@ export default defineNuxtConfig({
       "@nuxt/eslint",
       "@nuxt/test-utils/module",
       "@pinia/nuxt",
+      "@vueuse/nuxt/module",
    ],
    css: ["~/assets/css/main.css"],
    compatibilityDate: "2025-07-15",
