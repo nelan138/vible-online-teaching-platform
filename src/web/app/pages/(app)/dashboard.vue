@@ -2,7 +2,7 @@
    <div>
       <!-- <ContentPlaceholder class="w-full h-[50dvh]" /> -->
 
-      <NuxtImg src="images/ayanokouji.jpeg" class="w-full aspect-4/1"/>
+      <NuxtImg src="images/ayanokouji.jpeg" class="w-full aspect-7/2"/>
 
       <UContainer class="py-8">
          <div>
