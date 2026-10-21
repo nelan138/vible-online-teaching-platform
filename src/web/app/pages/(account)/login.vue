@@ -4,9 +4,10 @@
          <div
             class="grid grid-cols-[auto_1fr] w-full mx-auto h-fit my-14 max-w-3xl border-2 border-muted rounded-sm"
          >
-            <NuxtImg class="h-full" src="/images/3t.jpeg" />
+            <!-- <NuxtImg class="h-full" src="/images/3t.jpeg" /> -->
+            <ContentPlaceholder class="h-full aspect-3/4" />
 
-            <div class="p-8">
+            <div class="p-12">
                <UAuthForm
                   :fields="fields"
                   :providers="providers"

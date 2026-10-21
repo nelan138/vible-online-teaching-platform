@@ -1,6 +1,8 @@
 <template>
    <div>
-      <ContentPlaceholder class="w-full h-[50dvh]" />
+      <!-- <ContentPlaceholder class="w-full h-[50dvh]" /> -->
+
+      <NuxtImg src="images/ayanokouji.jpeg" class="w-full aspect-4/1"/>
 
       <UContainer class="py-8">
          <div>
