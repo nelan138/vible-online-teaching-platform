@@ -2,12 +2,7 @@
    <div>
       <UHeader to="/dashboard">
          <template #left>
-            <NuxtLink
-               to="/dashboard"
-               class="shrink-0 font-bold text-xl text-highlighted me-4"
-            >
-               Vible
-            </NuxtLink>
+            <NuxtLink to="/dashboard" class="shrink-0 font-bold text-xl text-highlighted me-4"> Vible </NuxtLink>
 
             <UNavigationMenu :items="navigationItems" variant="link" />
          </template>
@@ -17,11 +12,7 @@
 
             <UColorModeButton />
 
-            <UButton
-               icon="lucide:user"
-               variant="ghost"
-               color="neutral"
-            />
+            <UButton icon="lucide:user" variant="ghost" color="neutral" to="/user/my_profile" />
          </template>
       </UHeader>
 
@@ -32,26 +23,26 @@
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem } from "@nuxt/ui";
+import type { NavigationMenuItem } from '@nuxt/ui';
 const route = useRoute();
 
 /* *** */
 
 const navigationItems = computed<NavigationMenuItem[]>(() => [
    {
-      label: "Dashboard",
-      to: "/dashboard",
-      active: route.path.startsWith("/dashboard"),
+      label: 'Dashboard',
+      to: '/dashboard',
+      active: route.path.startsWith('/dashboard'),
    },
    {
-      label: "My Courses",
-      to: "/courses",
-      active: route.path.startsWith("/courses"),
+      label: 'My Courses',
+      to: '/courses',
+      active: route.path.startsWith('/courses'),
    },
    {
-      label: "Notifications",
-      to: "/notifications",
-      active: route.path.startsWith("/notifications"),
+      label: 'Notifications',
+      to: '/notifications',
+      active: route.path.startsWith('/notifications'),
    },
 ]);
 </script>

@@ -1,15 +1,13 @@
 <template>
    <div>
-      <!-- <ContentPlaceholder class="w-full h-[50dvh]" /> -->
+      <ContentPlaceholder class="w-full h-[50dvh]" />
 
-      <NuxtImg src="images/ayanokouji.jpeg" class="w-full aspect-7/2"/>
+      <!-- <NuxtImg src="images/ayanokouji.jpeg" class="w-full aspect-7/2" /> -->
 
       <UContainer class="py-8">
          <div>
             <div class="flex items-center justify-between">
-               <h2 class="py-4 text-xl font-semibold text-highlighted">
-                  Notifications
-               </h2>
+               <h2 class="py-4 text-xl font-semibold text-highlighted">Notifications</h2>
 
                <NuxtLink
                   to="/notifications"
@@ -25,9 +23,7 @@
 
          <div>
             <div class="flex items-center justify-between">
-               <h2 class="py-4 text-xl font-semibold text-highlighted">
-                  My courses
-               </h2>
+               <h2 class="py-4 text-xl font-semibold text-highlighted">My courses</h2>
 
                <NuxtLink
                   to="/courses"
@@ -38,19 +34,8 @@
                </NuxtLink>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-               <UCard
-                  v-for="course in courses"
-                  :key="course.id"
-                  :ui="{
-                     header: 'p-0 sm:p-0',
-                  }"
-                  class="flex flex-col h-full"
-               >
-                  <template #header>
-                     <ContentPlaceholder class="w-full h-20" />
-                  </template>
-
+            <div class="grid grid-cols-1 gap-6">
+               <UCard v-for="course in courses" :key="course.id" class="flex flex-col h-full">
                   <template #default>
                      <NuxtLink
                         :to="`/course/${course.id}`"
@@ -63,22 +48,6 @@
                         {{ course.teacher }}
                      </p>
                   </template>
-
-                  <template #footer>
-                     <div class="flex justify-between items-center">
-                        <UButton
-                           :to="`/course/${course.id}`"
-                           icon="lucide:square-arrow-right-enter"
-                           variant="ghost"
-                           color="neutral"
-                        />
-                        <UButton
-                           icon="lucide:ellipsis-vertical"
-                           variant="ghost"
-                           color="neutral"
-                        />
-                     </div>
-                  </template>
                </UCard>
             </div>
          </div>
@@ -88,7 +57,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-   layout: "app",
+   layout: 'app',
 });
 
 const coursesStore = useCoursesStore();
