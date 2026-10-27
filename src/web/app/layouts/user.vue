@@ -12,7 +12,7 @@
 
             <UColorModeButton />
 
-            <UButton icon="lucide:user" variant="ghost" color="neutral" to="/user/my_profile" />
+            <UButton icon="lucide:user" variant="ghost" color="neutral" to="profile" />
          </template>
       </UHeader>
 
@@ -31,18 +31,18 @@ const route = useRoute();
 const navigationItems = computed<NavigationMenuItem[]>(() => [
    {
       label: 'Dashboard',
-      to: '/dashboard',
-      active: route.path.startsWith('/dashboard'),
+      to: 'dashboard',
+      active: /\/dashboard/.test(route.path),
    },
    {
-      label: 'My Courses',
-      to: '/courses',
-      active: route.path.startsWith('/courses'),
+      label: 'My courses',
+      to: 'courses',
+      active: /\/courses/.test(route.path),
    },
    {
       label: 'Notifications',
-      to: '/notifications',
-      active: route.path.startsWith('/notifications'),
+      to: 'notifications',
+      active: /\/notifications/.test(route.path),
    },
 ]);
 </script>

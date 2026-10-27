@@ -5,17 +5,17 @@
       </div>
 
       <div class="grid grid-cols-1 gap-8">
-         <ContentPlaceholder class="h-20"/>
-         <ContentPlaceholder class="h-20"/>
-         <ContentPlaceholder class="h-20"/>
-         <ContentPlaceholder class="h-20"/>
+         <PlaceHolder class="h-20"/>
+         <PlaceHolder class="h-20"/>
+         <PlaceHolder class="h-20"/>
+         <PlaceHolder class="h-20"/>
       </div>
    </UContainer>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
-   layout: 'homepage',
+   layout: 'user',
 });
 </script>
 
