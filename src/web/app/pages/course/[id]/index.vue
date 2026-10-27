@@ -41,7 +41,6 @@
             <ContentPlaceholder class="h-100" />
          </div>
       </div>
-
    </UContainer>
 
    <UContainer v-else class="py-6">
@@ -53,7 +52,7 @@
 import type { NavigationMenuItem } from '@nuxt/ui';
 
 definePageMeta({
-   layout: 'app',
+   layout: 'course',
 });
 
 const coursesStore = useCoursesStore();
@@ -78,19 +77,21 @@ const sidebarItems = computed<NavigationMenuItem[][]>(() => [
          icon: 'lucide:clock',
       },
       {
-         label: 'Discussion Forum',
-         icon: 'lucide:messages-square',
-      },
-      {
          label: 'Content',
          icon: 'lucide:layers',
       },
    ],
    [
       {
+         label: 'Discussion Forum',
+         icon: 'lucide:messages-square',
+      },
+      {
          label: 'Participants',
          icon: 'lucide:users',
       },
+   ],
+   [
       {
          label: 'Back to Courses',
          icon: 'lucide:arrow-left',

@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-   layout: 'app',
+   layout: 'homepage',
 });
 
 const coursesStore = useCoursesStore();
