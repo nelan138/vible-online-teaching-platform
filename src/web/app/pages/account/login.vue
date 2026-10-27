@@ -27,7 +27,7 @@
          class="flex flex-col items-center justify-center gap-4 mt-8 border-2 border-dashed border-error rounded-sm p-4 w-fit mx-auto"
       >
          <p class="text-error">For debugging only</p>
-         <UButton label="dashboard" to="user/admin/dashboard" variant="outline" icon="lucide:house" color="error" />
+         <UButton label="dashboard" to="user/dashboard" variant="outline" icon="lucide:house" color="error" />
       </div>
    </UContainer>
 </template>

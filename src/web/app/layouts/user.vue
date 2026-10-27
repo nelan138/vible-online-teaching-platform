@@ -1,8 +1,8 @@
 <template>
    <div>
-      <UHeader to="/dashboard">
+      <UHeader>
          <template #left>
-            <NuxtLink to="/dashboard" class="shrink-0 font-bold text-xl text-highlighted me-4"> Vible </NuxtLink>
+            <NuxtLink to="/user/dashboard" class="shrink-0 font-bold text-xl text-highlighted me-4"> Vible </NuxtLink>
 
             <UNavigationMenu :items="navigationItems" variant="link" />
          </template>
@@ -32,17 +32,17 @@ const navigationItems = computed<NavigationMenuItem[]>(() => [
    {
       label: 'Dashboard',
       to: 'dashboard',
-      active: /\/dashboard/.test(route.path),
+      active: route.path.startsWith('/user/dashboard')
    },
    {
       label: 'My courses',
       to: 'courses',
-      active: /\/courses/.test(route.path),
+      active: route.path.startsWith('/user/courses')
    },
    {
       label: 'Notifications',
       to: 'notifications',
-      active: /\/notifications/.test(route.path),
+      active: route.path.startsWith('/user/notifications')
    },
 ]);
 </script>
