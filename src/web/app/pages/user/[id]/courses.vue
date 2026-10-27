@@ -1,5 +1,13 @@
 <template>
    <UContainer class="py-4">
+      <section class="flex justify-end py-4">
+         <UFieldGroup>
+            <UInput type="text" placeholder="Enter invite code" size="md" />
+
+            <UButton label="Join" />
+         </UFieldGroup>
+      </section>
+
       <section>
          <div class="flex items-center justify-between">
             <H2>My courses</H2>
@@ -40,7 +48,7 @@
                         variant="ghost"
                         color="neutral"
                      />
-                     
+
                      <UButton icon="lucide:ellipsis-vertical" variant="ghost" color="neutral" />
                   </div>
                </template>
