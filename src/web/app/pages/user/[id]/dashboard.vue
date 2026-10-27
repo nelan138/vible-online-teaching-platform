@@ -1,63 +1,58 @@
 <template>
    <div>
-      <ContentPlaceholder class="w-full h-[50dvh]" />
-
-      <!-- <NuxtImg src="images/ayanokouji.jpeg" class="w-full aspect-7/2" /> -->
+      <PlaceHolder class="w-full h-[50dvh]" />
 
       <UContainer class="py-8">
-         <div>
+         <section>
             <div class="flex items-center justify-between">
-               <h2 class="py-4 text-xl font-semibold text-highlighted">Notifications</h2>
+               <H2>Notifications</H2>
 
-               <NuxtLink
-                  to="/notifications"
-                  class="flex items-center gap-1 text-sm text-muted hover:text-info hover:underline"
-               >
-                  <span>view all</span>
-                  <UIcon name="lucide:chevrons-right" class="size-4" />
-               </NuxtLink>
+               <UButton
+                  label="view all"
+                  trailing-icon="lucide:chevrons-right"
+                  variant="link"
+                  color="neutral"
+                  to="notifications"
+               />
             </div>
 
-            <ContentPlaceholder class="w-full h-50" />
-         </div>
+            <PlaceHolder class="w-full h-50" />
+         </section>
 
-         <div>
+         <section>
             <div class="flex items-center justify-between">
-               <h2 class="py-4 text-xl font-semibold text-highlighted">My courses</h2>
+               <H2>Courses</H2>
 
-               <NuxtLink
-                  to="/courses"
-                  class="flex items-center gap-1 text-sm text-muted hover:text-info hover:underline"
-               >
-                  <span>view all</span>
-                  <UIcon name="lucide:chevrons-right" class="size-4" />
-               </NuxtLink>
+               <UButton
+                  label="view all"
+                  trailing-icon="lucide:chevrons-right"
+                  variant="link"
+                  color="neutral"
+                  to="courses"
+               />
             </div>
 
             <div class="grid grid-cols-1 gap-6">
                <UCard v-for="course in courses" :key="course.id" class="flex flex-col h-full">
-                  <template #default>
-                     <NuxtLink
-                        :to="`/course/${course.id}`"
-                        class="font-semibold text-highlighted text-base line-clamp-1 hover:underline hover:text-info"
-                     >
+                  <H3>
+                     <NuxtLink :to="`/course/${course.id}`">
                         {{ course.title }}
                      </NuxtLink>
+                  </H3>
 
-                     <p class="text-sm text-muted mt-1">
-                        {{ course.teacher }}
-                     </p>
-                  </template>
+                  <Description>
+                     {{ course.teacher }}
+                  </Description>
                </UCard>
             </div>
-         </div>
+         </section>
       </UContainer>
    </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
-   layout: 'homepage',
+   layout: 'user',
 });
 
 const coursesStore = useCoursesStore();

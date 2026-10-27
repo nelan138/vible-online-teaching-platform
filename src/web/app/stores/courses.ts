@@ -23,16 +23,6 @@ export const useCoursesStore = defineStore("courses", () => {
          title: "Course C",
          teacher: "Teacher C",
       },
-      {
-         id: 4,
-         title: "Course D",
-         teacher: "Teacher D",
-      },
-      {
-         id: 5,
-         title: "Course E",
-         teacher: "Teacher E",
-      },
    ]);
 
    return {
