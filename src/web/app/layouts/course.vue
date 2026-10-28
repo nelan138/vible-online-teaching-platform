@@ -12,7 +12,7 @@
 
             <UColorModeButton />
 
-            <UButton icon="lucide:user" variant="ghost" color="neutral" to="/user/my_profile" />
+            <UButton icon="lucide:user" variant="ghost" color="neutral" to="/user/profile" />
          </template>
       </UHeader>
 
@@ -68,10 +68,14 @@ const sidebarItems = computed<NavigationMenuItem[][]>(() => [
       {
          label: 'Recent activities',
          icon: 'lucide:clock',
+         to: `/course/${courseId}`,
+         active: false,
       },
       {
          label: 'Content',
          icon: 'lucide:layers',
+         to: `/course/${courseId}`,
+         active: false,
       },
    ],
    [
