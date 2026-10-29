@@ -8,12 +8,11 @@
          </UFieldGroup>
       </section>
 
-      <section>
-         <div class="flex items-center justify-between">
-            <H2>My courses</H2>
-
-            <UButton icon="lucide:folder-plus" variant="ghost" color="neutral" />
-         </div>
+      <ContentSection title="My courses">
+         <template #header-actions>
+            <UButton icon="lucide:plus" variant="ghost" color="neutral" />
+            <UButton icon="lucide:ellipsis-vertical" variant="ghost" color="neutral" />
+         </template>
 
          <article class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <UCard
@@ -54,7 +53,7 @@
                </template>
             </UCard>
          </article>
-      </section>
+      </ContentSection>
    </UContainer>
 </template>
 

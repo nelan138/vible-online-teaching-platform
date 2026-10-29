@@ -1,15 +1,19 @@
 <template>
    <UContainer class="py-8">
-      <div class="flex items-center justify-start">
-         <h2 class="py-4 text-xl font-semibold text-highlighted">Notifications</h2>
-      </div>
+      <ContentSection title="Notifications">
+         <template #header-actions>
+            <UButton icon="lucide:check-check" variant="ghost" color="neutral" />
+            <UButton icon="lucide:bell" variant="ghost" color="neutral" />
+            <UButton icon="lucide:ellipsis-vertical" variant="ghost" color="neutral" />
+         </template>
 
-      <div class="grid grid-cols-1 gap-8">
-         <PlaceHolder class="h-20"/>
-         <PlaceHolder class="h-20"/>
-         <PlaceHolder class="h-20"/>
-         <PlaceHolder class="h-20"/>
-      </div>
+         <div class="grid grid-cols-1 gap-8">
+            <PlaceHolder class="h-20" />
+            <PlaceHolder class="h-20" />
+            <PlaceHolder class="h-20" />
+            <PlaceHolder class="h-20" />
+         </div>
+      </ContentSection>
    </UContainer>
 </template>
 
