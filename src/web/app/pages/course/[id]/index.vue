@@ -4,9 +4,10 @@
          <H1>{{ course.title }}</H1>
       </section>
 
-      <ContentSection collapsible title="Recent activities">
+      <ContentSection collapsible title="Announcements">
          <template #header-actions>
             <UButton icon="lucide:plus" color="neutral" variant="ghost" />
+            <UButton icon="lucide:bell" color="neutral" variant="ghost" />
             <UButton icon="lucide:ellipsis-vertical" color="neutral" variant="ghost" />
          </template>
 

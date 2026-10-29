@@ -1,5 +1,9 @@
 <template>
    <div>
+      <section class="flex items-center justify-end mb-4">
+         <UButton label="Get invite code" trailing-icon="lucide:share-2" />
+      </section>
+
       <UTable :data="data" :columns="columns" class="flex-1">
          <template #actions-cell>
             <div class="flex justify-end">
