@@ -6,18 +6,18 @@
 
       <div class="grid grid-cols-1 gap-4">
          <div class="grid grid-cols-[2fr_3fr] gap-4">
-            <ContentPlaceholder class="h-50" />
-            <ContentPlaceholder class="h-50" />
+            <PlaceHolder class="h-50" />
+            <PlaceHolder class="h-50" />
          </div>
 
-         <ContentPlaceholder class="h-100" />
+         <PlaceHolder class="h-100" />
       </div>
    </UContainer>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
-   layout: 'homepage',
+   layout: 'user',
 });
 </script>
 

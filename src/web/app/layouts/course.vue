@@ -89,6 +89,11 @@ const sidebarItems = computed<NavigationMenuItem[][]>(() => [
          icon: 'lucide:users',
          to: `/course/${courseId}/roster`,
       },
+      {
+         label: 'Assignments',
+         icon: 'lucide:swatch-book',
+         to: `/course/${courseId}/assignments`,
+      },
    ],
    [
       {
