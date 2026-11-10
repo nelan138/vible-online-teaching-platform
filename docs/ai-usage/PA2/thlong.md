@@ -1,0 +1,7 @@
+# AI Usage Log - PA2 (Trương Hiển Long)
+
+| # | Issue | Tool | Task / purpose | How I Used & Verified the Output |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | [#77](https://github.com/nelan138/vible-online-teaching-platform/issues/77) | ChatGPT | Prepare the project glossary by identifying and defining important domain, technical, and requirements-related terms used in the SRS. | Suggest concise definitions and improve consistency in terminology. Reviewed the suggestions against the project context, functional requirements, and existing documentation before incorporating the appropriate terms. |
+| 2 | [#78](https://github.com/nelan138/vible-online-teaching-platform/issues/78) | ChatGPT | Document measurable non-functional requirements for the Vible online teaching platform. | Propose requirements related to performance, usability, security, reliability, and maintainability. Verified that each requirement was relevant to the system and included a clear method of verification; edited or removed suggestions that were ambiguous or outside the project scope. |
+| 3 | [#79](https://github.com/nelan138/vible-online-teaching-platform/issues/79) | ChatGPT | Write detailed use case specifications for the main student and teacher workflows. | Used ChatGPT to structure actors, preconditions, main flows, alternative flows, postconditions, and related functional requirements. Cross-checked the generated specifications with the requirements traceability information and revised them to match the agreed project behavior. |
