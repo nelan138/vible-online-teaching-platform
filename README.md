@@ -11,8 +11,7 @@ cd src
 npm ci
 ```
 
-Create `src/.env.local` with your Neon connection strings (already configured on
-this computer):
+Create `src/.env.local` with your Neon connection strings
 
 ```dotenv
 DATABASE_URL=<pooled PostgreSQL connection string>
