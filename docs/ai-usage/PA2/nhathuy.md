@@ -1,0 +1,11 @@
+# AI Usage Log - PA2 (Lê Đoàn Nhật Huy)
+
+Session date: 9 November 2026. Checks below were performed by Codex; human review and team approval remain pending.
+
+| # | Member | Tool | Task / purpose | How the output was verified and changed |
+| --- | --- | --- | --- | --- |
+| 1 | Lê Đoàn Nhật Huy | OpenAI Codex | Check PA2 task assignments. | Codex queried GitHub issues and compared assignees and states with weekly reports. Issues #45, #46, #49 and #50 were closed and assigned to nhathuybs. Earlier advice was corrected where GitHub differed from the reports; contribution percentages were not inferred. |
+| 2 | Lê Đoàn Nhật Huy | OpenAI Codex | Review T06-PA2.docx against the local PA2 template. | Codex inspected document text, tables and embedded links; identified seven missing Must-have specifications, an empty review table, incomplete contributions, unresolved RTM entries and inconsistent rules. Word layout and interactive Figma behaviour were not verified. |
+| 3 | Lê Đoàn Nhật Huy | OpenAI Codex | Draft missing use-case specifications and align requirements, business rules and acceptance criteria. | Codex added UC-03, UC-07, UC-08, UC-09, UC-10, UC-11 and UC-12, clarified enrollment and submission rules, and aligned UC-19 priority with FR-07A. Structural checks confirmed all 13 Must-have use cases have specifications. New policy details remain proposals pending team approval. |
+| 4 | Lê Đoàn Nhật Huy | OpenAI Codex | Complete the RTM and record review findings. | Codex checked RTM coverage for all 22 functional requirements in the revised draft. FR-08B and FR-09B were marked for proposed deferral, while PA3/PA4 work remains future work. Embedded images were compared with the backup and preserved. The review is an AI-assisted audit, not evidence of a team approval meeting. |
+| 5 | Lê Đoàn Nhật Huy | OpenAI Codex | Prepare the PA2 AI usage log and identify related files for Git. | Codex checked this log against actions in the conversation and inspected git status and existing requirements files. The log was added to a separate Word copy because the source could not be overwritten, and to docs/ai-usage/PA2/nhathuy.md. Human review, prototype checks and PDF export remain pending. |
