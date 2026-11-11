@@ -29,7 +29,6 @@
       "@tiptap/suggestion": "^3.32.0",
       "@tiptap/vue-3": "^3.32.0",
       "@vueuse/nuxt": "^15.0.0",
-      "better-auth": "^1.7.20",
       "nuxt": "^4.6.2",
       "pg": "^8.23.1",
       "pinia": "^4.1.0",
@@ -46,7 +45,6 @@
       "@nuxt/ui": "^4.12.0",
       "@pinia/nuxt": "^1.0.3",
       "@types/pg": "^8.23.1",
-      "auth": "^1.7.20",
       "eslint": "^10.13.0",
       "tailwindcss": "^4.3.3",
       "typescript": "^6.0.3"
