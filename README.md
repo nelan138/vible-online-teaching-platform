@@ -1,71 +1,46 @@
-# Vible — Online Teaching Platform
+# Vible
 
-Vible is a modern online LMS platform built with **Nuxt**.
+Online teaching platform built with Nuxt, Vue, Nuxt UI, Pinia, and PostgreSQL on Neon.
 
----
+## Setup
 
-## Tech Stack
-
-- **Framework**: [Nuxt 4](https://nuxt.com/)
----
-
-## Project Structure
-
-```text
-vible-online-teaching-platform/
-└── src/
-    └── web/                # frontend
-        ├── app/
-        │   ├── assets/
-        │   ├── components/
-        │   ├── layouts/
-        │   ├── pages/      # routes
-        │   └── stores/     # Pinia stores
-        ├── public/         # Static assets
-        ├── nuxt.config.ts
-        └── package.json
-```
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- **Node.js**: `^20.19.0` or `>=22.12.0`
-
-### How to run
-
-1. ***VERY IMPORTANT*** - **Navigate to the web app directory:**
-   ```bash
-   cd src/web
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   # or pnpm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run prepare
-   npm run dev
-   ```
-
-4. Open [http://localhost:3000](http://localhost:3000).
-
----
-
-## Available Scripts
-
-***ONLY*** and ***ALWAYS*** run these from `src/web`:
+Use Node.js 24 and npm. Run app commands from `src`:
 
 ```bash
-npm run build
-npm run dev
-npm run generate
-npm run preview
-npm run postinstall
-npm run prepare
+cd src
+npm ci
 ```
+
+Create `src/.env.local` with your Neon connection strings (already configured on
+this computer):
+
+```dotenv
+DATABASE_URL=<pooled PostgreSQL connection string>
+DATABASE_URL_UNPOOLED=<direct PostgreSQL connection string>
+```
+
+Use the pooled URL for app queries and the direct URL for migrations. Keep
+credentials out of Git and browser code. `neon.ts` contains the Neon service configuration.
+
+## Run
+
+```bash
+npm run dev       # http://localhost:3000
+npm run build     # production build
+npm start         # run the built app locally
+```
+
+`GET /api/health` checks the database connection. Success returns
+`{"status":"ok","database":"connected"}`; failure returns HTTP 503.
+
+For deployment, set `DATABASE_URL` on the app host and run
+`node .output/server/index.mjs` from `src` after building on that host.
+
+## Structure
+
+- `src/app/` — pages, layouts, components, and Pinia stores
+- `src/server/` — server routes and database access
+- `src/public/` — static assets
+- `docs/` — project documentation
+
+Authentication and application database tables are not implemented yet.
