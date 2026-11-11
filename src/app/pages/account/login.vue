@@ -6,7 +6,7 @@
          <div class="p-12">
             <UAuthForm :fields="fields" :providers="providers" :submit="{ label: 'Sign in' }" @submit="onSubmit">
                <template #password-hint>
-                  <NuxtLink to="account/forgot-password" class="text-xs text-primary font-medium hover:underline">
+                  <NuxtLink to="/account/forgot-password" class="text-xs text-primary font-medium hover:underline">
                      Forgot password?
                   </NuxtLink>
                </template>
@@ -14,7 +14,7 @@
                <template #footer>
                   <p class="text-center text-sm text-muted">
                      Don't have an account?
-                     <NuxtLink to="account/sign-up" class="text-primary font-medium hover:underline">
+                     <NuxtLink to="/account/sign-up" class="text-primary font-medium hover:underline">
                         Sign up
                      </NuxtLink>
                   </p>
@@ -27,7 +27,7 @@
          class="flex flex-col items-center justify-center gap-4 mt-8 border-2 border-dashed border-error rounded-sm p-4 w-fit mx-auto"
       >
          <p class="text-error">For debugging only</p>
-         <UButton label="dashboard" to="user/dashboard" variant="outline" icon="lucide:house" color="error" />
+         <UButton label="dashboard" to="/user/dashboard" variant="outline" icon="lucide:house" color="error" />
       </div>
    </UContainer>
 </template>
