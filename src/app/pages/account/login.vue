@@ -4,9 +4,7 @@
          <PlaceHolder class="h-full aspect-3/4" text="Image here" />
 
          <div class="p-12">
-            <p v-if="checkingSession" role="status">Checking your session…</p>
-
-            <UAuthForm v-else :fields="fields" :providers="providers" :submit="{ label: 'Sign in' }" @submit="onSubmit">
+            <UAuthForm :fields="fields" :providers="providers" :submit="{ label: 'Sign in' }" @submit="onSubmit">
                <template #password-hint>
                   <NuxtLink to="/account/forgot-password" class="text-xs text-primary font-medium hover:underline">
                      Forgot password?
@@ -34,15 +32,6 @@ definePageMeta({
 const toast = useToast();
 const auth = useAuth();
 
-type UserRecord = {
-   user_id: string;
-   account_id: string;
-   user_role: 'student' | 'teacher' | null;
-};
-
-const checkingSession = ref(true);
-const accountId = ref('');
-
 const fields = [
    {
       name: 'email',
@@ -69,6 +58,8 @@ const providers = [
    },
 ];
 
+/* *** */
+
 async function onGoogleSignIn() {
    const [result, error] = await tryCatch(
       auth.signIn.social({
@@ -89,63 +80,53 @@ async function onGoogleSignIn() {
 }
 
 onMounted(async () => {
-   const [, error] = await tryCatch(checkSession());
-   checkingSession.value = false;
+   const { data: session, error: sessionData } = await auth.getSession();
 
-   if (error) {
+   if (sessionData) {
       toast.add({
          title: 'Could not complete sign-in',
          description: 'Please try again.',
          color: 'error',
       });
-   }
-});
-
-async function checkSession() {
-   const { data, error } = await auth.getSession();
-
-   if (error) throw new Error('Could not check your session.');
-   if (!data?.user) return;
-
-   accountId.value = data.user.id;
-   await findUser();
-}
-
-async function findUser() {
-   const userURL = `/api/users/${encodeURIComponent(accountId.value)}`;
-   let response = await $fetch.raw<UserRecord>(userURL, {
-      ignoreResponseError: true,
-   });
-
-   if (response.status === 404) {
-      response = await $fetch.raw<UserRecord>('/api/users', {
-         method: 'POST',
-         body: { account_id: accountId.value },
-         ignoreResponseError: true,
-      });
-
-      if (response.status === 409) {
-         response = await $fetch.raw<UserRecord>(userURL, { ignoreResponseError: true });
-      }
-   }
-
-   if (!response.ok || !response._data) throw new Error('Could not load your user record.');
-   await completeSignIn(response._data);
-}
-
-async function completeSignIn(user: UserRecord) {
-   if (user.user_role !== 'student' && user.user_role !== 'teacher') {
-      await navigateTo('/account/select-role');
       return;
    }
 
-   toast.add({
-      title: 'Signed in successfully',
-      description: `Signed in as a ${user.user_role}.`,
-      color: 'success',
-   });
-   await navigateTo('/user/dashboard');
-}
+   if (!session?.user) return; // user is not logged in
+
+   const accountId = session.user.id;
+
+   const [user, userError] = await tryCatch($fetch<UserRecord | null>(`/api/users/${accountId}`));
+
+   if (userError) {
+      toast.add({ title: 'Could not load your account', description: 'Please try again.', color: 'error' });
+      return;
+   }
+
+   if (user) {
+      if (!user.user_role) return navigateTo('/account/select-role');
+      navigateTo('/user/dashboard');
+      return;
+   } else {
+      const [, insertError] = await tryCatch(
+         $fetch<UserRecord>('/api/users', {
+            method: 'POST',
+            body: { account_id: accountId },
+         })
+      );
+
+      if (insertError) {
+         toast.add({
+            title: 'Could not create your account',
+            description: 'Please try again.',
+            color: 'error',
+         });
+
+         return;
+      }
+
+      navigateTo('/account/select-role');
+   }
+});
 
 function onSubmit() {
    toast.add({

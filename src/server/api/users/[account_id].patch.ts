@@ -1,3 +1,12 @@
+/**
+ $fetch('/api/users/[account_id]', {
+   method: 'PATCH',
+   body: {
+      <user_role>
+   },
+})
+ */
+
 import updateUserRole from '../../sql/update_user_role.sql';
 
 export default defineEventHandler(async (event) => {
