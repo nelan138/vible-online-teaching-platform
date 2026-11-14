@@ -59,6 +59,12 @@ vible-online-teaching-platform/
 3. **Nx Monorepo**:
    - *Pros*: Rich enterprise plugin ecosystem and code generation generators.
    - *Cons*: Significantly higher configuration complexity and steeper learning curve compared to lightweight pnpm workspaces + Turborepo.
+4. **npm Workspaces / Yarn Berry (Alternative Package Managers)**:
+   - *Pros*: `npm` comes pre-installed with Node.js; `yarn` has an established community.
+   - *Cons*:
+     - `npm workspaces` relies on flat `node_modules` hoisting, creating **phantom dependencies** (where packages can secretly import undeclared transitive dependencies), leading to deployment failures. It also has noticeably slower installation times in CI.
+     - `yarn` Plug'n'Play (PnP) creates compatibility friction with Vite and Nuxt runtime module resolvers.
+     - *Why pnpm was chosen*: Strict, non-flat symlinked `node_modules` eliminates phantom dependencies; global content-addressable cache speeds up CI builds by 2–3x; and native support for `workspace:*` protocols.
 
 ## Consequences
 ### Positive
