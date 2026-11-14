@@ -30,8 +30,8 @@ The file management process utilizes an edge-streaming and pre-signed storage me
    - *Pros*: Stored in the same database transaction as the record.
    - *Cons*: Drastically degrades database performance, bloats memory and backups, quickly exceeds Neon/Supabase free tier database size caps (500 MB).
 2. **AWS S3 Standard Storage**:
-   - *Pros*: Industry standard object storage.
-   - *Cons*: AWS charges substantial egress bandwidth fees and requires credit card verification, introducing financial and setup friction.
+   - *Pros*: Industry standard object storage with mature SDK ecosystem.
+   - *Cons*: While both AWS and Cloudflare R2 require a payment method on file for account provisioning, AWS S3 charges substantial data transfer egress fees (~$0.09/GB beyond the initial 100 GB free tier), creating unpredictable recurring costs when students repeatedly download course materials and assignment files. In contrast, Cloudflare R2 features $0 egress bandwidth fees globally and integrates directly into Cloudflare Workers via native zero-latency bindings (`env.R2_BUCKET`), eliminating public API request signing overhead.
 3. **Local Filesystem Storage**:
    - *Pros*: Simple filesystem API calls.
    - *Cons*: Completely incompatible with ephemeral, stateless serverless edge workers on Cloudflare Pages.

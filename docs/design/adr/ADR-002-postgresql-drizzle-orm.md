@@ -23,13 +23,13 @@ For the database driver, we adopt **`@neondatabase/serverless`** configured with
 ## Alternatives Considered
 1. **Prisma ORM with PostgreSQL**:
    - *Pros*: Declarative `schema.prisma`, automatic migrations, built-in Prisma Studio GUI.
-   - *Cons*: Heavy Rust-based query engine binary (`prisma-engines`) or WASM driver adapter increases bundle size significantly (> 2-3 MB) and incurs noticeable cold-start overhead in Cloudflare V8 Isolates. High abstraction layer obscures generated SQL, complicating query indexing and normalisation verification.
+   - *Cons*: On Cloudflare Workers V8 Isolates, Prisma requires compiling an underlying Rust-based query engine to WebAssembly (`@prisma/client/runtime/wasm.js` ~1.8–2.0 MB WASM binary) combined with driver adapters (`@prisma/adapter-neon`). Instantiating and compiling the WASM module incurs a measurable 50–150 ms cold-start penalty per isolate initialization. Furthermore, Prisma's internal engine abstracts query execution behind an intermediary translation layer, adding serialization overhead and obscuring generated SQL compared to Drizzle's lightweight (~40 KB gzipped), zero-dependency pure TypeScript query builder.
 2. **MongoDB / Mongoose (NoSQL)**:
    - *Pros*: Flexible document schema, easy initial setup.
    - *Cons*: Weak relational constraint enforcement across multiple collections (e.g., enrollment rosters, unique compound keys for assignment submissions). Lacks native ANSI-SQL compliance needed for database design evaluation (3NF normalization, foreign key cascading).
 3. **Cloudflare D1 (SQLite at the Edge)**:
-   - *Pros*: Native Edge integration within Cloudflare ecosystem.
-   - *Cons*: SQLite lacks advanced concurrent write scaling, has limited support for rich PostgreSQL extensions and UUID data types, and imposes single-region write bottlenecks that do not match standard enterprise LMS persistence models.
+   - *Pros*: Native Edge integration and direct binding (`env.DB`) within the Cloudflare ecosystem.
+   - *Cons*: Cloudflare D1 is based on SQLite, which enforces database-level single-writer serialization. Concurrent write operations (e.g., simultaneous assignment submissions or grading spikes) cause write contention and queue timeouts (`SQLITE_BUSY`). Additionally, D1 lacks native PostgreSQL data types (native UUIDs, `ENUM`s, rich timezone-aware timestamp arithmetic) and couples the project to Cloudflare's proprietary D1 dialect rather than standard ANSI PostgreSQL with Multi-Version Concurrency Control (MVCC) and row-level locking.
 4. **`postgres.js` (TCP Driver)**:
    - *Pros*: High-performance pure-JS PostgreSQL client supporting connection pipelining.
    - *Cons*: `postgres.js` communicates strictly over TCP sockets (PostgreSQL wire protocol), not WebSockets or HTTP. Because Cloudflare Workers isolates are ephemeral and cannot maintain persistent client-side TCP connection pools across invocations, running `postgres.js` on Workers requires routing through **Cloudflare Hyperdrive** to manage connection pooling and avoid connection exhaustion. In contrast, `@neondatabase/serverless` provides native HTTP/fetch querying without additional infrastructure configuration.

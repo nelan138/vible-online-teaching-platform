@@ -25,8 +25,8 @@ The application is deployed to **Cloudflare Pages / Workers**, running on global
    - *Pros*: Familiar traditional MVC pattern, independent scaling.
    - *Cons*: Render's free tier spins down after 15 minutes of inactivity, causing 30–50s cold-start delays. Maintaining two separate repositories and CI/CD pipelines increases team overhead.
 2. **Next.js (React) on Vercel**:
-   - *Pros*: Extensive community, server components.
-   - *Cons*: Vercel Hobby tier has stricter bandwidth and function execution limits for collaborative student projects. The team has higher proficiency and speed with Vue/Nuxt SFCs.
+   - *Pros*: Extensive community, React Server Components.
+   - *Cons*: Vercel Hobby tier imposes a hard limit of 100 GB/month bandwidth (deployments are paused when exceeded under Vercel's Fair Use Policy) and caps serverless functions at 1,000,000 invocations/month, whereas Cloudflare Pages offers unlimited static egress bandwidth and 100,000 Worker requests/day (~3,000,000/month, a 3x higher execution ceiling). Furthermore, Vercel Hobby terms strictly restrict deployments to non-commercial personal projects. The team also possesses established expertise and velocity with Vue 3 SFCs and Nuxt UI.
 3. **SvelteKit on Cloudflare Pages**:
    - *Pros*: Lightweight runtime, fast reactivity.
    - *Cons*: Smaller UI component ecosystem compared to Nuxt UI / Tailwind CSS, requiring more custom component development within tight deadlines.
