@@ -75,4 +75,4 @@ vible-online-teaching-platform/
 
 ### Negative / Trade-offs
 - **Tooling Familiarity**: Team members must understand workspace concepts (`pnpm --filter <package> <command>`) and avoid creating circular package dependencies.
-- **Deployment Configuration**: Cloudflare Pages build command must be configured with monorepo root context (e.g., `pnpm --filter @vible/web run build` with output directory `apps/web/.output/public`).
+- **Deployment Configuration**: Cloudflare Pages build command must be configured with the monorepo root context (e.g., `pnpm --filter @vible/web run build` with build output directory `apps/web/dist`). Under the `cloudflare-pages` Nitro preset, the deployable output containing both `_worker.js` and static assets is written to `dist/`, rather than the standard `.output/public`.
