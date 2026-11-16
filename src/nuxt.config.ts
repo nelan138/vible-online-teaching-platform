@@ -13,7 +13,7 @@ export default defineNuxtConfig({
    devtools: { enabled: false },
    runtimeConfig: {
       public: {
-         neonAuthUrl: '',
+         neonAuthUrl: process.env.NEON_AUTH_BASE_URL || '',
       },
    },
 });
