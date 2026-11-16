@@ -1,45 +1,80 @@
 # Vible
 
-Online teaching platform built with Nuxt, Vue, Nuxt UI, Pinia, and PostgreSQL on Neon.
+An online teaching platform built with Nuxt and Neon PostgreSQL.
 
 ## Setup
 
-Use Node.js 24 and npm. Run app commands from `src`:
+Use Node.js 24 and npm. Run commands from `src`:
 
 ```bash
 cd src
 npm ci
 ```
 
-Create `src/.env.local` with your Neon connection strings
+In the Neon Console, enable Auth and Google sign-in for your database branch.
+Allow `http://localhost:3000` for local development.
 
-```dotenv
-DATABASE_URL=<pooled PostgreSQL connection string>
-DATABASE_URL_UNPOOLED=<direct PostgreSQL connection string>
-```
-
-Use the pooled URL for app queries and the direct URL for migrations. Keep
-credentials out of Git and browser code. `neon.ts` contains the Neon service configuration.
-
-## Run
+Install the [Neon CLI](https://neon.com/docs/cli), then download the settings:
 
 ```bash
-npm run dev       # http://localhost:3000
-npm run build     # production build
-npm start         # run the built app locally
+neon link
+neon env pull --service auth --service postgres --file .env.local
 ```
 
-`GET /api/health` checks the database connection. Success returns
-`{"status":"ok","database":"connected"}`; failure returns HTTP 503.
+If asked to choose a project, add `--project-id YOUR_PROJECT_ID`.
+Use the same branch for Auth and the database.
 
-For deployment, set `DATABASE_URL` on the app host and run
-`node .output/server/index.mjs` from `src` after building on that host.
+The generated `.env.local` must contain `DATABASE_URL` and `NEON_AUTH_BASE_URL`.
+Keep this file out of Git. Restart the app after changing it.
 
-## Structure
+### Create the profile table
 
-- `src/app/` — pages, layouts, components, and Pinia stores
-- `src/server/` — server routes and database access
-- `src/public/` — static assets
+For a new database, run this in Neon's SQL Editor after enabling Auth:
+
+```sql
+CREATE TABLE public.users (
+    id UUID PRIMARY KEY REFERENCES neon_auth."user"(id),
+    name TEXT NOT NULL CHECK (length(btrim(name)) > 0),
+    role TEXT NOT NULL CHECK (role IN ('student', 'teacher'))
+);
+```
+
+Neon stores login accounts. This table stores each user's name and role.
+
+## Run and test
+
+```bash
+npm run dev       # open http://localhost:3000
+npm test          # run automated tests
+npm run build     # build the app
+npm start         # run the built app
+```
+
+Open `/api/health` to check the database connection.
+The tests run locally without Neon credentials; they do not test Google sign-in.
+
+## Login and setup
+
+- Logged out → `/account/login`.
+- Logged in with an incomplete profile → `/user/setup` to enter a name and choose Student or Teacher.
+- Setup complete → `/user/dashboard`.
+
+Only Google sign-in works currently. Email/password login is not connected yet.
+Open `/debug` directly to log out and test the flow again.
+
+The server checks login details before reading or creating a profile. Users can
+only access their own profile.
+
+## Deployment
+
+Set `DATABASE_URL` and `NUXT_PUBLIC_NEON_AUTH_URL` on your host. Use your Neon Auth
+URL for the second value, and allow your website's address in Neon Auth.
+Build with `npm run build`, then start with `node .output/server/index.mjs` from `src`.
+
+## Folders
+
+- `src/app/` — pages and interface code
+- `src/server/` — APIs and database queries
+- `src/shared/` — code shared by the app and server
+- `src/tests/` — automated tests
 - `docs/` — project documentation
-
-Authentication and application database tables are not implemented yet.
