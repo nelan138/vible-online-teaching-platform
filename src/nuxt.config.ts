@@ -11,6 +11,9 @@ export default defineNuxtConfig({
    css: ['~/assets/css/main.css'],
    compatibilityDate: '2025-07-15',
    devtools: { enabled: false },
+   routeRules: {
+      '/user/dashboard': { ssr: false },
+   },
    runtimeConfig: {
       public: {
          neonAuthUrl: process.env.NEON_AUTH_BASE_URL || '',

@@ -29,6 +29,7 @@
 <script setup lang="ts">
 definePageMeta({
    layout: 'user',
+   middleware: 'require-user-setup',
 });
 
 const coursesStore = useCoursesStore();
