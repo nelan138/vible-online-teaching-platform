@@ -53,11 +53,29 @@ const providers = [
 
 /* *** */
 
+onMounted(async () => {
+   const [loggedIn, logInError] = await tryCatch(userIsLoggedIn());
+   if (logInError || !loggedIn) return;
+
+   const [setUp, setUpError] = await tryCatch(userSetupIsComplete());
+
+   if (setUpError) {
+      toast.add({
+         title: 'Could not verify your account setup',
+         description: setUpError.message || 'Please try again.',
+         color: 'error',
+      });
+      return;
+   }
+
+   return navigateTo(setUp ? '/user/dashboard' : '/user/setup');
+});
+
 async function onGoogleSignIn() {
    const [, error] = await tryCatch(
       auth.signIn.social({
          provider: 'google',
-         callbackURL: new URL('/', window.location.origin).href,
+         callbackURL: new URL('/account/login', window.location.origin).href,
       })
    );
 

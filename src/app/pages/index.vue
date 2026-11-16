@@ -6,17 +6,30 @@
 const toast = useToast();
 
 onMounted(async () => {
-   const [data, error] = await tryCatch(userIsLoggedIn());
+   const [loggedIn, logInError] = await tryCatch(userIsLoggedIn());
 
-   if (error) {
+   if (logInError) {
       toast.add({
          title: 'Could not verify your session',
-         description: error.message || 'Please try again.',
+         description: logInError.message || 'Please try again.',
          color: 'error',
       });
       return;
    }
 
-   return navigateTo(data ? '/user/dashboard' : '/account/login');
+   if (!loggedIn) return navigateTo('/account/login');
+
+   const [setUp, setUpError] = await tryCatch(userSetupIsComplete());
+
+   if (setUpError) {
+      toast.add({
+         title: 'Could not verify your account setup',
+         description: setUpError.message || 'Please try again.',
+         color: 'error',
+      });
+      return;
+   }
+
+   return navigateTo(setUp ? '/user/dashboard' : '/user/setup');
 });
 </script>
