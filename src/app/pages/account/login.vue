@@ -57,7 +57,7 @@ async function onGoogleSignIn() {
    const [, error] = await tryCatch(
       auth.signIn.social({
          provider: 'google',
-         callbackURL: new URL('/user/dashboard', window.location.origin).href,
+         callbackURL: new URL('/', window.location.origin).href,
       })
    );
 
