@@ -15,9 +15,9 @@ Vible enforces role-based access control (RBAC): every user is either a **Teache
 
 The forces that shape this decision are:
 
-1. **Credential security (NFR-07)**: session tokens must never be readable by client-side JavaScript (XSS) or sent in plaintext, and passwords must be hashed with Argon2id or bcrypt (cost ≥ 12).
+1. **Credential security (NFR-07)**: session tokens must never be readable by client-side JavaScript (XSS) or sent in plaintext. NFR-07 itself only requires HTTPS and that passwords never appear in plaintext; the team's chosen hashing strength is Argon2id or bcrypt (cost ≥ 12).
 2. **Stateless edge runtime (ADR-001)**: the application runs as one Nitro bundle on Cloudflare Pages / Workers (V8 isolates). There is no shared in-memory session store, and each request on the Free plan is limited to **10 ms of CPU time**.
-3. **Low latency (NFR-01)**: 95% of API requests must finish in under 500 ms, so authenticating a request should not require a database round trip on every read.
+3. **Low latency (NFR-01)**: list endpoints must respond within 2 seconds at P95, and the team's internal target is 500 ms, so authenticating a request should not require a database round trip on every read.
 4. **Deep links**: students and teachers reach Vible from links in emails, LMS announcements (Canvas, Moodle), chat platforms, and syllabus PDFs. A logged-in user who follows such a link must not be sent to the login screen.
 5. **Token theft**: a stolen long-lived credential must be detectable and revocable, even though access tokens themselves are verified without state.
 6. **Data minimization**: tokens should carry only what authorization needs, because cookies end up in proxy dumps, error traces, and request logs.

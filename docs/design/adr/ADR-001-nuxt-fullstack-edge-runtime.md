@@ -11,7 +11,7 @@
 ---
 
 ## Context
-Vible is an online teaching platform requiring a lightweight, highly responsive user interface for teachers and students, coupled with a fast, reliable backend API to handle course rosters, material distributions, and assignment submissions. According to our non-functional requirements (NFR-01), user interactions and API endpoints must respond in under 500 ms globally, and the system must operate within a $0 infrastructure budget (free-tier constraint) while minimizing cold starts and deployment friction.
+Vible is an online teaching platform requiring a lightweight, highly responsive user interface for teachers and students, coupled with a fast, reliable backend API to handle course rosters, material distributions, and assignment submissions. NFR-01 requires the authenticated list endpoints to respond within 2 seconds at P95 under a 50-user load; the team additionally sets an internal target of 500 ms for standard API requests. The system must also operate within a $0 infrastructure budget (free-tier constraint) while minimizing cold starts and deployment friction.
 
 In earlier evaluations, separate frontend (e.g., standalone React/Vue SPA) and backend (e.g., Express.js / NestJS container on Render/Railway) architectures were considered. However, traditional container hosting on free tiers suffers from 30–50 second spin-down delays, violating NFR-01 and creating unacceptable user experiences during demonstration and grading.
 
@@ -44,8 +44,8 @@ The application is deployed to **Cloudflare Pages / Workers**, running on global
   - **Password hashing** at NFR-07 strength (Argon2id in WASM, or `bcryptjs` at cost ≥ 12) is expected to take far more than 10 ms (see ADR-003). Login and register could fail with Cloudflare error 1102 (CPU limit exceeded).
   - **Server-side rendering** of non-trivial Nuxt pages (large rosters, gradebooks) may also exceed it.
   - **File upload validation** (see ADR-004).
-- **Database wake-up latency**: after an idle period, the first request waits for Neon to resume. This is the same kind of delay that this ADR cites against Render, although it is much shorter. Its effect on NFR-01 (< 500 ms) has not been measured.
-- **NFR-01 is not yet demonstrated**: the < 500 ms target is a design goal. No latency measurement from multiple regions exists yet.
+- **Database wake-up latency**: after an idle period, the first request waits for Neon to resume. This is the same kind of delay that this ADR cites against Render, although it is much shorter. Its effect on NFR-01 (P95 within 2 seconds) and on the internal 500 ms target has not been measured.
+- **NFR-01 is not yet demonstrated**: neither the 2-second P95 requirement nor the team's internal 500 ms target has been verified. No latency measurement from multiple regions exists yet.
 
 ## Validation Plan and Mitigations
 Before this decision is treated as settled, the following will be measured on a deployed Free-plan Worker during implementation:
@@ -53,7 +53,7 @@ Before this decision is treated as settled, the following will be measured on a 
 1. CPU time of a login/register request using the chosen hashing algorithm and cost.
 2. CPU time of server-rendering the heaviest pages (course roster, gradebook).
 3. Latency of the first request after Neon has been idle (cold database) compared with a warm request.
-4. p95 response time of key endpoints from at least two distant regions, compared with NFR-01.
+4. p95 response time of key endpoints from at least two distant regions, compared with NFR-01 and the internal 500 ms target.
 
 If a measurement fails, the fallbacks, in order of preference, are:
 
