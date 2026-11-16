@@ -3,6 +3,7 @@
    "type": "module",
    "private": true,
    "scripts": {
+      "test": "node --test tests/*.test.mjs",
       "build": "nuxt build",
       "dev": "nuxt dev --dotenv .env.local",
       "start": "node --env-file-if-exists=.env.local .output/server/index.mjs",
@@ -30,6 +31,7 @@
       "@tiptap/suggestion": "^3.32.0",
       "@tiptap/vue-3": "^3.32.0",
       "@vueuse/nuxt": "^15.0.0",
+      "jose": "^6.2.12",
       "nuxt": "^4.6.2",
       "pg": "^8.23.1",
       "pinia": "^4.1.0",
