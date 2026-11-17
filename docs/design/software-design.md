@@ -114,7 +114,7 @@ Constraints are conditions the team did not choose. The technology stack (Nuxt 4
 ## 3.1 Architectural Style and Monorepo Structure
 
 ### 3.1.1 Edge-Layered Application Pattern
-*"Vible adopts a **Three-Tier Client–Server Architecture Style** at the macro deployment level (implemented via a modern Jamstack and Edge-computing runtime) combined with a **Layered Architecture Style** (applying Clean Architecture principles: Presentation $\rightarrow$ Controller $\rightarrow$ Service $\rightarrow$ Repository) for internal module decomposition across both frontend and backend modules."*
+*"Vible adopts a **Three-Tier Client–Server Architecture Style** at the macro deployment level (implemented via a modern Jamstack and Edge-computing runtime) combined with a **Layered Architecture Style** (Presentation $\rightarrow$ Controller $\rightarrow$ Service $\rightarrow$ Repository, each layer depending only on the layer below it) for internal module decomposition across both frontend and backend modules."*
 
 > An architectural Excalidraw diagram is available at [`3.1.1-edge-layered-pattern.excalidraw`](./3.1.1-edge-layered-pattern.excalidraw) with an exported vector graphic at [`3.1.1-edge-layered-pattern.svg`](./3.1.1-edge-layered-pattern.svg).
 
