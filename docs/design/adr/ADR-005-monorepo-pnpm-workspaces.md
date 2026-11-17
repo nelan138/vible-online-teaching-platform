@@ -33,8 +33,7 @@ vible-online-teaching-platform/
 │   └── web/                   # @vible/web: Nuxt 4 full-stack application (Vue 3 frontend + Nitro edge API)
 ├── packages/
 │   ├── shared/                # @vible/shared: Shared domain types, DTOs, Zod validation schemas, business constants
-│   ├── db/                    # @vible/db: Drizzle ORM schema, migration scripts, connection pooler, seed scripts
-│   ├── ui/                    # @vible/ui: Shared UI design tokens and shared Vue component primitives (optional)
+│   ├── db/                    # @vible/db: Drizzle ORM schema, migration scripts, Neon HTTP client, repositories, seed scripts
 │   └── config/                # @vible/config: Shared ESLint, Prettier, and TypeScript base configurations
 ├── docs/                      # Architectural designs, ADRs, requirements, and meeting records
 ├── pa/                        # Course project assignment deliverables (PA1 - PA5)
