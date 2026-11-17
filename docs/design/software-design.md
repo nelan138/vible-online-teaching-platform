@@ -155,25 +155,35 @@ Constraints are conditions the team did not choose. The technology stack (Nuxt 4
 4. **End-to-End TypeScript Contracts**:
    - DTOs and Zod validation schemas are shared across the client and Nitro server handlers, eliminating contract drift.
 
-### 3.1.2 Monorepo Architecture and Codebase Decomposition
-To organize the system's components cleanly and prevent tight coupling or code duplication, Vible utilizes a **Monorepo Architecture** governed by **pnpm Workspaces** with **Turborepo** build pipeline orchestration.
+### 3.1.2 Monorepo Structure and Codebase Decomposition
+This subsection shows how the layers of 3.1.1 are laid out in the codebase. The code lives in one repository organised as a **pnpm workspace** with **Turborepo** task orchestration (ADR-005). The repository organisation is a development-time choice; it does not change the runtime architecture of 3.1.1.
 
 #### Workspace Directory Layout:
 ```
 vible-online-teaching-platform/
 ├── apps/
-│   └── web/                   # @vible/web: Nuxt 4 full-stack application (Vue 3 frontend + Nitro edge API)
+│   ├── web/                   # @vible/web: Nuxt 4 application (Vue 3 frontend + Nitro API: controllers, guards, services)
+│   └── reconciler/            # (planned, PA5) Separate scheduled Worker that removes orphaned R2 objects (ADR-004)
 ├── packages/
-│   ├── shared/                # @vible/shared: Domain types, DTOs, Zod validation schemas, business constants
-│   ├── db/                    # @vible/db: Drizzle ORM schema, migrations, connection pooler, seeding
-│   ├── ui/                    # @vible/ui: Shared component primitives & Tailwind design tokens (optional)
-│   └── config/                # @vible/config: Shared ESLint, Prettier, and TypeScript base configurations
+│   ├── shared/                # @vible/shared: Domain types, DTOs, Zod validation schemas, business-rule constants
+│   ├── db/                    # @vible/db: Drizzle schema, repositories, migrations, seeding, Neon HTTP client
+│   └── config/                # @vible/config: Shared TypeScript base config (ESLint and Prettier rules to be added)
 ├── docs/                      # Architectural designs, ADRs, requirements, and meeting records
 ├── pa/                        # Course project assignment deliverables (PA1 - PA5)
-├── package.json               # Root monorepo workspace configuration & orchestration scripts
+├── package.json               # Root workspace configuration & orchestration scripts
 ├── pnpm-workspace.yaml        # Workspace package glob declarations
 └── turbo.json                 # Turborepo task dependencies and build caching pipeline
 ```
+
+#### Mapping of Layers to Packages:
+
+| Layer (3.1.1) | Location | Contents |
+| :--- | :--- | :--- |
+| Presentation | `apps/web` (pages, components, composables, Pinia stores) | Vue views, Nuxt UI components, client state, client-side form validation |
+| Controller (with guards) | `apps/web/server/api`, `apps/web/server/middleware` | Route handlers, `csrfGuard`, `authGuard`, `roleGuard`, `uploadValidator` |
+| Service | `apps/web/server/services` | `AuthService`, `CourseService`, `EnrollmentService`, `MaterialService`, `AssignmentService`, `SubmissionService` |
+| Repository | `packages/db` (repositories), `apps/web/server` (R2 storage adapter) | Drizzle repositories behind the data-access interface the services call; R2 Worker-binding adapter |
+| Cross-cutting contracts | `packages/shared` | DTOs, Zod schemas, constants used by every layer |
 
 #### Package Responsibilities and Inter-Package Dependency Graph:
 
@@ -183,10 +193,10 @@ graph TD
     classDef pkg fill:#f0fdf4,stroke:#16a34a,stroke-width:2px;
     classDef tool fill:#fef3c7,stroke:#d97706,stroke-width:2px;
 
-    AppWeb["apps/web (@vible/web)\n- Nuxt 4 / Vue 3 Frontend\n- Nitro Edge Route Handlers (/api/*)\n- Pinia State Stores"]:::app
-    PkgDB["packages/db (@vible/db)\n- Drizzle Schema & Relational Mappings\n- Migration Engine (drizzle-kit)\n- Neon Serverless Connection Client"]:::pkg
-    PkgShared["packages/shared (@vible/shared)\n- TypeScript Domain Interfaces & DTOs\n- Zod Validation Schemas (Auth, Course, Files)\n- Business Constants (BR-01..BR-08)"]:::pkg
-    PkgConfig["packages/config (@vible/config)\n- Base tsconfig.json\n- Shared ESLint & Prettier Rules"]:::tool
+    AppWeb["apps/web (@vible/web)\n- Nuxt 4 / Vue 3 Frontend\n- Nitro Route Handlers, Guards (/api/*)\n- Application Services\n- Pinia State Stores"]:::app
+    PkgDB["packages/db (@vible/db)\n- Drizzle Schema & Repositories\n- Migration Engine (drizzle-kit)\n- Neon HTTP Client"]:::pkg
+    PkgShared["packages/shared (@vible/shared)\n- TypeScript Domain Types & DTOs\n- Zod Validation Schemas\n- Business-Rule Constants (file limits, roles, states)"]:::pkg
+    PkgConfig["packages/config (@vible/config)\n- Base tsconfig.json\n- ESLint & Prettier Rules (planned)"]:::tool
 
     AppWeb -->|workspace:*| PkgShared
     AppWeb -->|workspace:*| PkgDB
@@ -196,15 +206,22 @@ graph TD
     PkgShared -.->|extends| PkgConfig
 ```
 
-#### Architectural Advantages of the Monorepo Approach:
-1. **Zero-Overhead Contract Sharing**:
-   - Zod validation schemas (e.g., `RegisterSchema`, `CreateAssignmentSchema`, `FileUploadMetadataSchema`) and TypeScript DTOs defined in `@vible/shared` are imported directly by both frontend forms for instant validation and Nitro server handlers for request payload parsing, preventing runtime schema mismatches.
-2. **Encapsulated Database Tooling**:
-   - `@vible/db` houses database migrations (`drizzle-kit generate`, `drizzle-kit migrate`), connection pooling logic, and schema definitions. Server-only database drivers (`@neondatabase/serverless`) are completely isolated from client bundles, reducing bundle size and preventing credential leaks.
-3. **High-Speed Incremental Builds & Testing**:
-   - `Turborepo` analyzes the topological dependency graph and caches build and test artifacts based on source file hashes. If only a frontend Vue component changes, tests for `@vible/db` and `@vible/shared` are served instantly from cache during CI runs.
-4. **Single Version Control & Unified CI**:
-   - All code, documentation, architectural ADRs, and tests evolve together in a single repository, making cross-cutting features (e.g., adding an assignment rubric field) verifiable in a single pull request with atomic commits.
+**Dependency rules.** `@vible/shared` depends on no other workspace package. `@vible/db` may depend only on `@vible/shared`. `@vible/web` may depend on both. Within `apps/web/server`, layers call only the layer below them (3.1.1). The dotted `extends` edges are planned: no package declares `@vible/config` as a dependency yet.
+
+#### Why a Monorepo for This Project:
+1. **Contract sharing without publishing**:
+   - Zod schemas (e.g., `RegisterSchema`, `CreateAssignmentSchema`) and DTOs in `@vible/shared` are imported by both the frontend forms and the Nitro handlers, so the two sides cannot validate differently. With a polyrepo, each change would need a package release, which a four-person team on a two-week implementation window (Section 2.1.2) cannot afford.
+2. **Database tooling kept in one package**:
+   - `@vible/db` holds the schema, repositories, and migrations (`drizzle-kit generate`, `drizzle-kit migrate`), so SQL lives in one place and the Service layer depends on repositories instead of Drizzle calls. Nitro server code is not bundled into the browser, which keeps the database driver and its credentials out of client bundles; this protection comes from Nitro, not from the package split, since `apps/web` also lists the driver as a dependency.
+3. **Incremental builds and tests (as the codebase grows)**:
+   - `turbo.json` declares task dependencies and caches results by input hash. At present `@vible/shared` and `@vible/db` define only `typecheck`; the cache benefit for tests starts once those packages gain tests in PA5.
+4. **One repository for code and documents**:
+   - Code, ADRs, and tests change together, so a cross-cutting change (e.g., the late-submission setting, which touches the schema, shared constants, a service, and a screen) is reviewed in one pull request. A CI workflow that runs lint, test, and build is planned for PA5; none exists yet.
+
+**Trade-off.** The workspace setup (filters, task graph, linked packages) costs time inside a short schedule, and Turborepo caching has little effect on a repository this small. The team accepts this because contract sharing (point 1) is the main benefit and the setup cost is paid once.
+
+**Deployment note.** Cloudflare Pages builds from the repository root with `pnpm --filter @vible/web run build` and the output directory `apps/web/dist` (ADR-005).
+
 
 ---
 
