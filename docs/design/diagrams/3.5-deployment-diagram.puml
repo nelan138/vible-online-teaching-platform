@@ -1,0 +1,88 @@
+@startuml 3.5-deployment-diagram
+!include <tupadr3/common>
+!include <tupadr3/font-awesome-5/user_graduate>
+!include <tupadr3/font-awesome-5/desktop>
+!include <tupadr3/font-awesome-5/globe>
+!include <tupadr3/font-awesome-5/shield_alt>
+!include <tupadr3/font-awesome-5/file_code>
+!include <tupadr3/font-awesome-5/server>
+!include <tupadr3/font-awesome-5/key>
+!include <tupadr3/font-awesome-5/hdd>
+!include <tupadr3/font-awesome-5/exchange_alt>
+!include <tupadr3/font-awesome-5/database>
+!include <tupadr3/font-awesome-5/envelope>
+
+title Vible - Deployment Diagram
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultFontName Arial
+skinparam defaultTextAlignment center
+skinparam ArrowFontSize 11
+skinparam ArrowColor #444444
+skinparam nodesep 50
+skinparam ranksep 100
+skinparam rectangle {
+  RoundCorner 15
+  BorderThickness 1.5
+  BorderStyle dashed
+  BackgroundColor<<grey>> #FFFFFF
+  BorderColor<<grey>> #888888
+  BackgroundColor<<cf>> #FFF8F0
+  BorderColor<<cf>> #F38020
+  BackgroundColor<<neon>> #F2FBF6
+  BorderColor<<neon>> #00A86B
+}
+skinparam card {
+  RoundCorner 12
+  BorderThickness 1
+  BackgroundColor #FFFFFF
+  BorderColor #BBBBBB
+}
+left to right direction
+
+rectangle "Client Device" as client <<grey>> {
+  FA5_USER_GRADUATE(users, "Students / Teachers\n/ Admin", card, #333333)
+  FA5_DESKTOP(browser, "Web Browser\nVue 3 SPA / PWA", card, #333333)
+}
+
+rectangle "Cloudflare Global Network" as cf <<cf>> {
+
+  FA5_GLOBE(dns, "Anycast DNS\nTLS 1.3 Termination", card, #F38020)
+  FA5_SHIELD_ALT(edge, "Edge Proxy / CDN\nStatic Cache\nDDoS Shield", card, #F38020)
+
+  rectangle "Cloudflare Pages / Workers\n(V8 Isolates, no container cold start)" as compute <<cf>> {
+    FA5_FILE_CODE(static, "Static Assets\n(apps/web/dist)", card, #F38020)
+    FA5_SERVER(nitro, "Nuxt 4 Nitro\nServer Bundle", card, #F38020)
+    FA5_KEY(jwt, "JWT Validation\n& Route Execution", card, #F38020)
+  }
+
+  FA5_HDD(r2, "R2 Object Storage\nBucket: vible-assets\nZero egress fees", card, #F38020)
+}
+
+rectangle "Neon Serverless Database" as neon <<neon>> {
+  FA5_EXCHANGE_ALT(proxy, "Serverless Proxy\nHTTP / WebSocket\nConnection pooling", card, #00A86B)
+  FA5_DATABASE(pg, "PostgreSQL 16\nACID, B-tree indexes\nPITR backups", card, #00A86B)
+}
+
+rectangle "External Services" as ext <<grey>> {
+  FA5_ENVELOPE(mail, "Email Gateway\n(Resend, REST)", card, #333333)
+}
+
+users --> browser
+browser ---> dns : HTTPS (443)
+dns --> edge
+edge --> static : static\nassets
+edge --> nitro : API\nroutes
+nitro -[hidden]- jwt
+nitro -> r2 : \nR2 binding /\nS3 API (HTTPS)
+nitro --> proxy : Drizzle ORM\nHTTPS fetch / WS (TLS)
+proxy --> pg : internal\nqueries
+nitro --> mail : REST / HTTPS
+
+r2 -[hidden]down- proxy
+proxy -[hidden]down- mail
+
+note right of r2 : Free tier: 10 GB
+note right of pg : Free tier: 0.5 GB\nCompute suspends when idle
+@enduml
