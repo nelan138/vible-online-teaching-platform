@@ -701,180 +701,213 @@ classDiagram
 
 ## 4.3 Class Specifications
 
-Below are detailed specifications for the 8 primary classes forming the core of the Vible platform.
+This subsection specifies the eight domain entities that the services and repositories of Section 4.2 create, load, and return. Two conventions apply to all of them:
+
+- **Entities hold state and rules, not I/O.** Password hashing, token signing, storage access, and database calls belong to the services and repositories in Section 4.2. An entity operation only reads or changes the entity's own fields, so it can be unit-tested without a database, a storage bucket, or a Worker runtime.
+- **Attributes are private.** They are read through getters and changed only through the listed operations, so each rule below is enforced in one place.
+
+`DiscussionMessage` (F07, Should) is not specified here. It follows the same pattern as `Announcement`, except that any course member may post it.
 
 ### 4.3.1 Class `User`
 - **Superclass**: None
-- **Responsibility**: Represents an authenticated identity within Vible; maintains security credentials, profile information, and role designation.
+- **Responsibility**: Represents one registered account and its single, fixed role (BR-01). It holds what authentication and authorization need: the password hash and the session version.
 
 | # | Attribute | Type | Visibility | Constraint | Description |
 | :- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `id` | `UUID` | Private | Primary Key, Not Null | Unique system-wide user identifier. |
-| 2 | `email` | `String` | Private | Unique, Not Null, Valid Email | Institutional or personal email for authentication. |
-| 3 | `fullName` | `String` | Private | Not Null, Length [2..100] | Display name shown on rosters and submissions. |
-| 4 | `passwordHash` | `String` | Private | Not Null, Argon2/bcrypt | Cryptographically hashed password digest. |
-| 5 | `role` | `RoleEnum` | Private | Not Null, `TEACHER` or `STUDENT` | Role determining system authorizations (BR-01). |
-| 6 | `avatarUrl` | `String` | Private | Nullable, Valid URL | Optional profile avatar link. |
-| 7 | `createdAt` | `DateTime` | Private | Not Null, Default `NOW()` | Timestamp when the user registered. |
+| 1 | `id` | `UUID` | Private | Primary key, not null | Unique account identifier; used as the `sub` claim of the access token (ADR-003). |
+| 2 | `email` | `String` | Private | Unique, not null, valid email, stored lower-case | Login identifier (BR-01). Not placed in the access token (ADR-003). |
+| 3 | `fullName` | `String` | Private | Not null, length [2..100] | Display name shown on rosters and submissions. |
+| 4 | `passwordHash` | `String` | Private | Not null | Salted password hash produced by `AuthService.hashPassword()`. The plaintext password is never stored or logged (NFR-07). |
+| 5 | `role` | `Role` | Private | Not null, set at registration, immutable | `TEACHER` or `STUDENT` (BR-01). There is no administrator role (ADR-003). |
+| 6 | `tokenVersion` | `Int` | Private | Not null, default 1, only increases | Session version carried as the `v` claim. It is incremented when refresh-token reuse is detected, which makes every mutation from older sessions fail (ADR-003). |
+| 7 | `createdAt` | `DateTime` | Private | Not null, server-set | Registration timestamp. |
 
 | # | Operation | Parameters / return | Visibility | Description |
 | :- | :--- | :--- | :--- | :--- |
-| 1 | `isTeacher()` | `(): Boolean` | Public | Returns `true` if user role is `TEACHER`. |
-| 2 | `isStudent()` | `(): Boolean` | Public | Returns `true` if user role is `STUDENT`. |
-| 3 | `verifyPassword()` | `(plain: String): Boolean` | Public | Compares plain password with salted `passwordHash`. |
-| 4 | `toSafeDTO()` | `(): UserProfileDTO` | Public | Exports user profile excluding sensitive password hash. |
+| 1 | `isTeacher()` | `(): Boolean` | Public | Returns `true` if `role` is `TEACHER`. |
+| 2 | `isStudent()` | `(): Boolean` | Public | Returns `true` if `role` is `STUDENT`. |
+| 3 | `revokeSessions()` | `(): void` | Public | Increments `tokenVersion`. Called by `AuthService` when a rotated refresh token is reused (ADR-003). |
+| 4 | `isSessionCurrent()` | `(tokenVersion: Int): Boolean` | Public | Returns `true` if the token's `v` claim equals `tokenVersion`. Mutations call it before writing (Section 2.1.1, "fast reads, strict writes"). |
+| 5 | `toSafeDTO()` | `(): UserProfileDTO` | Public | Returns `id`, `fullName`, `email`, and `role`, never `passwordHash` or `tokenVersion` (NFR-07). |
 
 ---
 
 ### 4.3.2 Class `Course`
 - **Superclass**: None
-- **Responsibility**: Represents a classroom workspace; aggregates learning materials, assignments, participants, and discussions under single-teacher ownership (BR-02).
+- **Responsibility**: Represents a course workspace owned by exactly one teacher (BR-02), and the invite code students use to request enrollment (BR-03).
 
 | # | Attribute | Type | Visibility | Constraint | Description |
 | :- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `id` | `UUID` | Private | Primary Key, Not Null | Unique course identifier. |
-| 2 | `title` | `String` | Private | Not Null, Length [3..120] | Name of the course (e.g., "Software Engineering"). |
-| 3 | `description` | `String` | Private | Nullable, Text | Detailed course syllabus or overview. |
-| 4 | `teacherId` | `UUID` | Private | Foreign Key (Users), Not Null | ID of the instructor who owns the course (BR-02). |
-| 5 | `inviteCode` | `String` | Private | Unique, Length [6..10], Alphanumeric | Randomly generated code used by students to join. |
-| 6 | `isArchived` | `Boolean` | Private | Not Null, Default `false` | Indicates whether the course has concluded. |
-| 7 | `createdAt` | `DateTime` | Private | Not Null, Default `NOW()` | Timestamp when the course was created. |
+| 1 | `id` | `UUID` | Private | Primary key, not null | Unique course identifier. |
+| 2 | `teacherId` | `UUID` | Private | Not null, references a `User` with role `TEACHER`, immutable | Owning teacher (BR-02). |
+| 3 | `title` | `String` | Private | Not null, trimmed, length [1..150] | Course name; mandatory (BR-02). |
+| 4 | `description` | `String` | Private | Nullable | Optional course overview. |
+| 5 | `inviteCode` | `String` | Private | Unique, not null, exactly 8 characters from an unambiguous alphanumeric set | Code or link students use to request enrollment (BR-03, FR-03C). |
+| 6 | `createdAt` | `DateTime` | Private | Not null, server-set | Creation timestamp. |
+| 7 | `updatedAt` | `DateTime` | Private | Not null, server-set | Last rename or invite-code change. |
 
 | # | Operation | Parameters / return | Visibility | Description |
 | :- | :--- | :--- | :--- | :--- |
-| 1 | `generateInviteCode()` | `(): String` | Public | Regenerates a fresh unique 8-character invite code. |
-| 2 | `isOwnedBy()` | `(userId: UUID): Boolean` | Public | Validates whether the given user is the owning teacher. |
-| 3 | `archive()` | `(): void` | Public | Sets `isArchived = true`, preventing new submissions. |
+| 1 | `isOwnedBy()` | `(userId: UUID): Boolean` | Public | Returns `true` if `userId` equals `teacherId`. Used for every owner-only operation (BR-02, BR-05, BR-08). |
+| 2 | `rename()` | `(title: String, description: String?): void` | Public | Validates and updates `title` and `description`, and sets `updatedAt` (FR-02B). |
+| 3 | `setInviteCode()` | `(code: String): void` | Public | Replaces `inviteCode`. `CourseService` generates the code and retries on collision, because only the database can check uniqueness. |
+
+Deleting a course is a `CourseService` operation, not an entity operation. It requires the owner and a confirmation (BR-02, FR-02B).
 
 ---
 
 ### 4.3.3 Class `Enrollment`
 - **Superclass**: None
-- **Responsibility**: Manages the membership association between a student and a course, tracking approval state (BR-03, FR-03C).
+- **Responsibility**: Records one student's membership request for one course and its approval state (BR-03). Only an `ENROLLED` membership grants access to course content (BR-04).
 
 | # | Attribute | Type | Visibility | Constraint | Description |
 | :- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `id` | `UUID` | Private | Primary Key, Not Null | Unique enrollment record identifier. |
-| 2 | `courseId` | `UUID` | Private | Foreign Key (Courses), Not Null | ID of the course being joined. |
-| 3 | `studentId` | `UUID` | Private | Foreign Key (Users), Not Null | ID of the student enrolling. |
-| 4 | `status` | `EnrollmentStatus` | Private | `PENDING`, `ENROLLED`, `REJECTED` | Current roster status (approval workflow). |
-| 5 | `requestedAt` | `DateTime` | Private | Not Null, Default `NOW()` | Timestamp when student submitted join code. |
-| 6 | `joinedAt` | `DateTime` | Private | Nullable | Timestamp when teacher approved enrollment. |
+| 1 | `id` | `UUID` | Private | Primary key, not null | Unique enrollment identifier. |
+| 2 | `courseId` | `UUID` | Private | Not null, immutable | Course being joined. |
+| 3 | `studentId` | `UUID` | Private | Not null, references a `User` with role `STUDENT`, immutable | Requesting student. |
+| 4 | `status` | `EnrollmentStatus` | Private | Not null, one of `PENDING`, `ENROLLED`, `REJECTED` | Approval state (BR-03). |
+| 5 | `requestedAt` | `DateTime` | Private | Not null, server-set | Time of the latest request. |
+| 6 | `decidedAt` | `DateTime` | Private | Nullable; set when `status` leaves `PENDING` | Time of the teacher's approval or rejection. |
+
+At most one `Enrollment` exists per (`courseId`, `studentId`), which prevents duplicate pending requests and enrollments (BR-03). When a teacher removes a student (FR-03B), the `Enrollment` is deleted, which revokes access immediately (BR-04). A removed student can then submit a new request.
 
 | # | Operation | Parameters / return | Visibility | Description |
 | :- | :--- | :--- | :--- | :--- |
-| 1 | `approve()` | `(): void` | Public | Changes status to `ENROLLED` and records `joinedAt`. |
-| 2 | `reject()` | `(): void` | Public | Sets status to `REJECTED`. |
-| 3 | `isActive()` | `(): Boolean` | Public | Returns `true` if status equals `ENROLLED`. |
+| 1 | `approve()` | `(now: DateTime): void` | Public | Requires `PENDING`. Sets `ENROLLED` and `decidedAt` (FR-03A). Otherwise throws `InvalidStateError`. |
+| 2 | `reject()` | `(now: DateTime): void` | Public | Requires `PENDING`. Sets `REJECTED` and `decidedAt` (FR-03A). Otherwise throws `InvalidStateError`. |
+| 3 | `reRequest()` | `(now: DateTime): void` | Public | Requires `REJECTED`. Sets `PENDING`, resets `requestedAt`, and clears `decidedAt`. Lets a rejected student ask again without a second row (BR-03). |
+| 4 | `grantsAccess()` | `(): Boolean` | Public | Returns `true` only for `ENROLLED`. `PENDING` and `REJECTED` grant no access (BR-04). |
 
 ---
 
 ### 4.3.4 Class `Material`
 - **Superclass**: None
-- **Responsibility**: Models teacher-published learning materials (lecture slides, readings, documents) stored in Cloudflare R2 (BR-05, BR-06).
+- **Responsibility**: Holds the metadata of one published course file. The file itself is stored in the private R2 bucket and is reached only through the server (ADR-004). Only the course owner publishes or deletes materials; the owner and enrolled students may download them (BR-05).
 
 | # | Attribute | Type | Visibility | Constraint | Description |
 | :- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `id` | `UUID` | Private | Primary Key, Not Null | Unique material identifier. |
-| 2 | `courseId` | `UUID` | Private | Foreign Key (Courses), Not Null | Course in which this material is published. |
-| 3 | `title` | `String` | Private | Not Null, Length [1..150] | Title of the material. |
-| 4 | `description` | `String` | Private | Nullable, Text | Supplementary notes or instructions. |
-| 5 | `fileUrl` | `String` | Private | Not Null, Valid URL | Secure access or CDN URL to download the file. |
-| 6 | `fileKey` | `String` | Private | Not Null, Unique | R2 storage object key identifier. |
-| 7 | `originalFilename` | `String` | Private | Not Null | Original sanitized human-readable filename for downloads. |
-| 8 | `fileSizeBytes` | `Int` | Private | Not Null, Range [1..20971520] | File size in bytes (max 20 MiB per BR-06). |
-| 9 | `mimeType` | `String` | Private | Not Null | Validated MIME type (PDF, DOCX, ZIP, etc.). |
-| 10 | `publishedAt` | `DateTime` | Private | Not Null, Default `NOW()` | Publication timestamp. |
+| 1 | `id` | `UUID` | Private | Primary key, not null | Unique material identifier; also part of the storage key. |
+| 2 | `courseId` | `UUID` | Private | Not null, immutable | Course the material belongs to. |
+| 3 | `title` | `String` | Private | Not null, trimmed, length [1..150] | Title shown in the material list. |
+| 4 | `description` | `String` | Private | Nullable | Optional notes. |
+| 5 | `fileKey` | `String` | Private | Not null, unique, immutable, `courses/{courseId}/materials/{id}.bin` | R2 object key. It is built only from UUIDs, never from the user's file name (ADR-004). |
+| 6 | `originalFilename` | `String` | Private | Not null, sanitized, length [1..255] | File name offered when the file is downloaded. |
+| 7 | `fileSizeBytes` | `Int` | Private | Not null, range [1..20 971 520] | Size in bytes; non-empty and at most 20 MiB (BR-06, NFR-08). |
+| 8 | `mimeType` | `String` | Private | Not null, in the permitted-type list | Type confirmed by magic-byte inspection (ADR-004). The permitted list is still pending (BR-06). |
+| 9 | `publishedAt` | `DateTime` | Private | Not null, server-set | Publication timestamp; set after both the R2 write and the record commit succeed (ADR-004). |
+
+There is no stored download URL. The bucket is private, and each download passes through a guarded endpoint that streams the object from `fileKey` (ADR-004).
 
 | # | Operation | Parameters / return | Visibility | Description |
 | :- | :--- | :--- | :--- | :--- |
-| 1 | `getDownloadUrl()` | `(): String` | Public | Generates a temporary pre-signed secure download URL. |
-| 2 | `isAccessibleBy()` | `(isEnrolled: Boolean): Boolean`| Public | Enforces that only enrolled members can access (BR-04). |
+| 1 | `storageKeyFor()` | `(courseId: UUID, materialId: UUID): String` | Public, static | Builds the `fileKey` so that `MaterialService` and the storage adapter use one format. |
+| 2 | `isAccessibleBy()` | `(course: Course, userId: UUID, enrollment: Enrollment?): Boolean` | Public | Returns `true` if `course.isOwnedBy(userId)` or `enrollment.grantsAccess()` (BR-04, BR-05). |
+| 3 | `contentDisposition()` | `(): String` | Public | Returns the `attachment; filename*=UTF-8''…` header value for `originalFilename`. Downloads are never rendered inline. |
 
 ---
 
 ### 4.3.5 Class `Assignment`
 - **Superclass**: None
-- **Responsibility**: Defines an assessable coursework task with explicit deadline parameters, submission rules, and maximum point values (BR-07).
+- **Responsibility**: Defines one assignment in a course, its mandatory deadline, and the teacher's late-submission setting (BR-07). It decides whether a submission or a removal is allowed at a given time.
 
 | # | Attribute | Type | Visibility | Constraint | Description |
 | :- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `id` | `UUID` | Private | Primary Key, Not Null | Unique assignment identifier. |
-| 2 | `courseId` | `UUID` | Private | Foreign Key (Courses), Not Null | Course under which assignment is created. |
-| 3 | `title` | `String` | Private | Not Null, Length [3..150] | Title of the homework/project. |
-| 4 | `instructions` | `String` | Private | Nullable, Text | Detailed markdown submission guidelines. |
-| 5 | `dueDate` | `DateTime` | Private | Not Null | Strict deadline timestamp (BR-07). |
-| 6 | `maxScore` | `Float` | Private | Not Null, Check (`> 0`) | Maximum achievable score (e.g., 100.0 or 10.0). |
-| 7 | `allowLate` | `Boolean` | Private | Not Null, Default `true` | Determines if late submissions are accepted. |
-| 8 | `createdAt` | `DateTime` | Private | Not Null, Default `NOW()` | Creation timestamp. |
+| 1 | `id` | `UUID` | Private | Primary key, not null | Unique assignment identifier. |
+| 2 | `courseId` | `UUID` | Private | Not null, immutable | Course the assignment belongs to. |
+| 3 | `title` | `String` | Private | Not null, trimmed, length [1..150] | Assignment title. |
+| 4 | `instructions` | `String` | Private | Nullable | Instructions shown to students. |
+| 5 | `dueDate` | `DateTime` | Private | Not null, stored in UTC | Deadline (FR-05A, BR-07). |
+| 6 | `allowLate` | `Boolean` | Private | Not null, default `false` | Late-submission setting; the teacher can change it at any time (FR-05D). The default is `false`, so late work is accepted only when the teacher allows it explicitly. |
+| 7 | `maxScore` | `Float` | Private | Not null, > 0, at most 2 decimal places | Upper bound for grades (FR-06A). |
+| 8 | `createdAt` | `DateTime` | Private | Not null, server-set | Creation timestamp. |
 
 | # | Operation | Parameters / return | Visibility | Description |
 | :- | :--- | :--- | :--- | :--- |
-| 1 | `isPastDue()` | `(currentTime: DateTime): Boolean` | Public | Checks whether current time is strictly after `dueDate`. |
-| 2 | `canAcceptSubmission()`| `(currentTime: DateTime): Boolean` | Public | Evaluates if submission is permitted (`!isPastDue() || allowLate`). |
+| 1 | `isPastDue()` | `(now: DateTime): Boolean` | Public | Returns `true` if `now` is strictly after `dueDate`; a submission at exactly `dueDate` is on time. `now` is always the server clock (ASR 5). |
+| 2 | `canAcceptSubmission()` | `(now: DateTime): Boolean` | Public | Returns `!isPastDue(now) \|\| allowLate` (BR-07, FR-05B). |
+| 3 | `canRemoveSubmission()` | `(now: DateTime): Boolean` | Public | Uses the same rule as `canAcceptSubmission()`. After the deadline, a student may remove a submission only if late submissions are enabled (BR-07, FR-05E). |
+| 4 | `setLateSubmission()` | `(allowed: Boolean): void` | Public | Changes `allowLate` (FR-05D). Submissions already accepted keep their `isLate` value. |
+| 5 | `isValidScore()` | `(score: Float): Boolean` | Public | Returns `true` if `0 <= score <= maxScore`. |
 
 ---
 
 ### 4.3.6 Class `Submission`
 - **Superclass**: None
-- **Responsibility**: Encapsulates a student's uploaded solution file, tracking upload timestamp and evaluating late submission status (BR-06, BR-07).
+- **Responsibility**: Records one submission attempt by one student for one assignment. Each attempt is a new `Submission` with its own stored file, and at most one attempt per student per assignment is current (BR-09, ADR-004).
 
 | # | Attribute | Type | Visibility | Constraint | Description |
 | :- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `id` | `UUID` | Private | Primary Key, Not Null | Unique submission identifier. |
-| 2 | `assignmentId` | `UUID` | Private | Foreign Key (Assignments), Not Null | The assignment being submitted to. |
-| 3 | `studentId` | `UUID` | Private | Foreign Key (Users), Not Null | The submitting student identifier. |
-| 4 | `fileUrl` | `String` | Private | Not Null, Valid URL | R2 bucket URL for the uploaded solution file. |
-| 5 | `fileKey` | `String` | Private | Not Null, Unique | R2 storage object key path. |
-| 6 | `originalFilename` | `String` | Private | Not Null | Original sanitized human-readable filename uploaded by student. |
-| 7 | `fileSizeBytes` | `Int` | Private | Not Null, Range [1..20971520] | Validated payload size in bytes (max 20 MiB). |
-| 8 | `submittedAt` | `DateTime` | Private | Not Null, Default `NOW()` | Timestamp when the submission was recorded. |
-| 9 | `isLate` | `Boolean` | Private | Not Null, Derived | Automatically set to `true` if `submittedAt > dueDate`. |
-| 10 | `isCurrent` | `Boolean` | Private | Not Null, Default `true` | Marks the student's latest accepted attempt; set to `false` when superseded by a resubmission. |
+| 1 | `id` | `UUID` | Private | Primary key, not null | Unique attempt identifier; also part of the storage key. |
+| 2 | `assignmentId` | `UUID` | Private | Not null, immutable | Assignment submitted to. |
+| 3 | `studentId` | `UUID` | Private | Not null, immutable, enrolled student of the course | Submitting student (BR-04). |
+| 4 | `fileKey` | `String` | Private | Not null, unique, immutable, `assignments/{assignmentId}/submissions/{studentId}/{id}.bin` | R2 object key; UUID-only (ADR-004). |
+| 5 | `originalFilename` | `String` | Private | Not null, sanitized, length [1..255] | File name offered when the teacher downloads the file. |
+| 6 | `fileSizeBytes` | `Int` | Private | Not null, range [1..20 971 520] | Size in bytes (BR-06, NFR-08). |
+| 7 | `mimeType` | `String` | Private | Not null, in the permitted-type list | Type confirmed by magic-byte inspection (ADR-004). |
+| 8 | `submittedAt` | `DateTime` | Private | Not null, server-set, immutable | Time the server accepted the upload. Never taken from the client (ASR 5). |
+| 9 | `isLate` | `Boolean` | Private | Not null, set once at creation, immutable | `true` if `submittedAt` is after the deadline (FR-05C). |
+| 10 | `isCurrent` | `Boolean` | Private | Not null, default `true`; at most one `true` per (`assignmentId`, `studentId`) | `true` for the student's current attempt. It becomes `false` when the student removes the attempt (BR-09). The record and its file are kept. |
+
+The record is created only after the file has been written to R2. If the record cannot be committed, the file is deleted, so a stored `Submission` always has a file and an attempt is never reported as successful without both (NFR-06, ADR-004).
 
 | # | Operation | Parameters / return | Visibility | Description |
 | :- | :--- | :--- | :--- | :--- |
-| 1 | `markLate()` | `(): void` | Public | Sets `isLate = true` when validated against assignment due date. |
-| 2 | `hasGrade()` | `(): Boolean` | Public | Checks whether a linked `GradeFeedback` record exists. |
+| 1 | `create()` | `(assignment: Assignment, studentId: UUID, file: StoredFileInfo, now: DateTime): Submission` | Public, static | Requires `assignment.canAcceptSubmission(now)`. Sets `submittedAt = now` and `isLate = assignment.isPastDue(now)`, and builds `fileKey`. `SubmissionService` must first confirm that the student has no current attempt (BR-09). |
+| 2 | `remove()` | `(assignment: Assignment, now: DateTime): void` | Public | Requires `isCurrent` and `assignment.canRemoveSubmission(now)`. Sets `isCurrent = false` (FR-05E). The service checks that the caller is the submitting student. |
+| 3 | `isOwnedBy()` | `(userId: UUID): Boolean` | Public | Returns `true` if `userId` equals `studentId` (BR-09: students remove only their own submissions). |
+| 4 | `status()` | `(grade: GradeFeedback?): SubmissionStatus` | Public | Derives the status shown in 4.1. It returns `REMOVED` if `!isCurrent`, `GRADED` if a grade exists, and otherwise `SUBMITTED_LATE` or `SUBMITTED_ON_TIME`. The status is computed, not stored. |
 
 ---
 
 ### 4.3.7 Class `GradeFeedback`
 - **Superclass**: None
-- **Responsibility**: Models instructor evaluation for a specific student submission, storing numeric score and qualitative feedback (BR-08, FR-06A).
+- **Responsibility**: Holds the course teacher's score and written feedback for one submission attempt (BR-08, FR-06A).
 
 | # | Attribute | Type | Visibility | Constraint | Description |
 | :- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `id` | `UUID` | Private | Primary Key, Not Null | Unique grading record identifier. |
-| 2 | `submissionId` | `UUID` | Private | Foreign Key (Submissions), Unique | ID of the evaluated submission (1:1 relation). |
-| 3 | `gradedById` | `UUID` | Private | Foreign Key (Users), Not Null | Teacher who performed the evaluation (BR-08). |
-| 4 | `score` | `Float` | Private | Not Null, Check (`score >= 0`) | Assigned score value. |
-| 5 | `feedbackText` | `String` | Private | Nullable, Text | Written evaluation comments for the student. |
-| 6 | `gradedAt` | `DateTime` | Private | Not Null, Default `NOW()` | Evaluation timestamp. |
+| 1 | `id` | `UUID` | Private | Primary key, not null | Unique grade identifier. |
+| 2 | `submissionId` | `UUID` | Private | Not null, unique, immutable | Graded attempt (0..1 grade per submission, 4.1). |
+| 3 | `gradedById` | `UUID` | Private | Not null; must be the owner of the assignment's course | Teacher who graded (BR-08). |
+| 4 | `score` | `Float` | Private | Not null, `0 <= score <= assignment.maxScore`, at most 2 decimal places | Awarded score. |
+| 5 | `feedbackText` | `String` | Private | Nullable, length [0..5000] | Written feedback shown to the student. |
+| 6 | `gradedAt` | `DateTime` | Private | Not null, server-set | Time of the latest grade or revision. |
 
 | # | Operation | Parameters / return | Visibility | Description |
 | :- | :--- | :--- | :--- | :--- |
-| 1 | `updateScore()` | `(newScore: Float, text: String): void` | Public | Updates grade and feedback with timestamp audit. |
-| 2 | `isValidScore()` | `(maxScore: Float): Boolean` | Public | Verifies that `0 <= score <= maxScore`. |
+| 1 | `create()` | `(submission: Submission, assignment: Assignment, teacherId: UUID, score: Float, text: String?, now: DateTime): GradeFeedback` | Public, static | Requires `submission.isCurrent` and `assignment.isValidScore(score)`. `SubmissionService` checks that `teacherId` owns the course (BR-08). |
+| 2 | `revise()` | `(assignment: Assignment, score: Float, text: String?, now: DateTime): void` | Public | Requires `assignment.isValidScore(score)`. Replaces `score` and `feedbackText` and sets `gradedAt`. Only the latest grade is kept. |
 
 ---
 
 ### 4.3.8 Class `Announcement`
 - **Superclass**: None
-- **Responsibility**: Represents instructor broadcasts directed to all enrolled course participants (BR-08, FR-07A).
+- **Responsibility**: Represents a message the course teacher posts to the course channel. Only enrolled students and the owner can read it (BR-04, BR-08, FR-07A).
 
 | # | Attribute | Type | Visibility | Constraint | Description |
 | :- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `id` | `UUID` | Private | Primary Key, Not Null | Unique announcement identifier. |
-| 2 | `courseId` | `UUID` | Private | Foreign Key (Courses), Not Null | Target course receiving the broadcast. |
-| 3 | `authorId` | `UUID` | Private | Foreign Key (Users), Not Null | Teacher authoring the broadcast (BR-08). |
-| 4 | `title` | `String` | Private | Not Null, Length [3..150] | Headline of the announcement. |
-| 5 | `content` | `String` | Private | Not Null, Text | Detailed announcement body. |
-| 6 | `createdAt` | `DateTime` | Private | Not Null, Default `NOW()` | Timestamp when broadcasted. |
+| 1 | `id` | `UUID` | Private | Primary key, not null | Unique announcement identifier. |
+| 2 | `courseId` | `UUID` | Private | Not null, immutable | Course channel. |
+| 3 | `authorId` | `UUID` | Private | Not null, immutable; must be the course owner | Posting teacher (BR-08). |
+| 4 | `title` | `String` | Private | Not null, trimmed, length [1..150] | Headline. |
+| 5 | `content` | `String` | Private | Not null, length [1..10 000], rendered as plain text | Message body. |
+| 6 | `postedAt` | `DateTime` | Private | Not null, server-set | Posting timestamp. |
 
 | # | Operation | Parameters / return | Visibility | Description |
 | :- | :--- | :--- | :--- | :--- |
-| 1 | `broadcast()` | `(): void` | Public | Triggers in-app / email notification events to roster. |
+| 1 | `create()` | `(course: Course, authorId: UUID, title: String, content: String, now: DateTime): Announcement` | Public, static | Requires `course.isOwnedBy(authorId)` (BR-08). |
+| 2 | `isVisibleTo()` | `(course: Course, userId: UUID, enrollment: Enrollment?): Boolean` | Public | Returns `true` for the owner or an enrolled student (BR-04). |
+
+Notifying students by email or in-app (FR-08A, FR-08B) is a Could-have feature and is not part of this class.
+
+---
+
+### 4.3.9 Enumerations
+
+| Enumeration | Values | Used by |
+| :--- | :--- | :--- |
+| `Role` | `TEACHER`, `STUDENT` | `User.role` (BR-01) |
+| `EnrollmentStatus` | `PENDING`, `ENROLLED`, `REJECTED` | `Enrollment.status` (BR-03) |
+| `SubmissionStatus` | `SUBMITTED_ON_TIME`, `SUBMITTED_LATE`, `GRADED`, `REMOVED` | Derived by `Submission.status()`; not stored |
 
 ---
 
