@@ -19,6 +19,8 @@
 <script setup lang="ts">
 import type { FormError } from '@nuxt/ui';
 
+definePageMeta({ layout: 'account' });
+
 const toast = useToast();
 
 /* *** */

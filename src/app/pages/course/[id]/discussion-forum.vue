@@ -7,14 +7,14 @@
       </template>
 
       <div class="flex flex-col gap-4">
-         <PlaceHolder class="h-15" />
-         <PlaceHolder class="h-15" />
-         <PlaceHolder class="h-15" />
-         <PlaceHolder class="h-15" />
-         <PlaceHolder class="h-15" />
-         <PlaceHolder class="h-15" />
-         <PlaceHolder class="h-15" />
-         <PlaceHolder class="h-15" />
+         <Placeholder class="h-15" />
+         <Placeholder class="h-15" />
+         <Placeholder class="h-15" />
+         <Placeholder class="h-15" />
+         <Placeholder class="h-15" />
+         <Placeholder class="h-15" />
+         <Placeholder class="h-15" />
+         <Placeholder class="h-15" />
       </div>
    </ContentSection>
 </template>

@@ -7,6 +7,8 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ layout: 'account' });
+
 const auth = useAuth();
 const toast = useToast();
 

@@ -5,6 +5,8 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ layout: 'account' });
+
 const toast = useToast();
 
 onMounted(async () => {

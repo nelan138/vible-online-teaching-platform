@@ -24,7 +24,7 @@
                class="flex flex-col h-full"
             >
                <template #header>
-                  <PlaceHolder class="w-full h-20" />
+                  <Placeholder class="w-full h-20" />
                </template>
 
                <template #default>
