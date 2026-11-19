@@ -1,15 +1,13 @@
 <template>
    <AccountForm :form="{ fields, providers }" :image="image">
       <template #password-hint>
-         <NuxtLink to="/account/forgot-password" class="text-xs text-primary font-medium hover:underline">
-            Forgot password?
-         </NuxtLink>
+         <NuxtLink class="text-xs text-primary font-medium hover:underline"> Forgot password? </NuxtLink>
       </template>
 
       <template #footer>
          <p class="text-center text-sm text-muted">
             Don't have an account?
-            <NuxtLink to="/account/sign-up" class="text-primary font-medium hover:underline"> Sign up </NuxtLink>
+            <NuxtLink class="text-primary font-medium hover:underline"> Sign up </NuxtLink>
          </p>
       </template>
    </AccountForm>
