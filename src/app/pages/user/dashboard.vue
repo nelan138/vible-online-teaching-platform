@@ -1,9 +1,9 @@
 <template>
    <div>
-      <PlaceHolder class="w-full h-[50dvh]" />
+      <DashboardHero />
 
       <UContainer class="py-8">
-         <ContentSection title="My courses">
+         <DashboardSection title="My courses">
             <template #header-actions>
                <UButton
                   to="/user/courses"
@@ -14,14 +14,15 @@
                />
             </template>
 
-            <UCard v-for="course in courses" :key="course.id" class="mb-4">
-               <NuxtLink :to="`/course/${course.id}`">
-                  <H3>{{ course.title }}</H3>
-               </NuxtLink>
-
-               <Description>{{ course.teacher }}</Description>
-            </UCard>
-         </ContentSection>
+            <DashboardCard
+               v-for="course in courses"
+               :key="course.id"
+               :to="`/course/${course.id}`"
+               :title="course.title"
+               :description="course.teacher"
+               class="mb-4"
+            />
+         </DashboardSection>
       </UContainer>
    </div>
 </template>
@@ -29,7 +30,7 @@
 <script setup lang="ts">
 definePageMeta({
    layout: 'user',
-   middleware: 'require-user-setup',
+   middleware: 'authenticate-user',
 });
 
 const coursesStore = useCoursesStore();
