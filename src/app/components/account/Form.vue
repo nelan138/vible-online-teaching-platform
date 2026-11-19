@@ -2,6 +2,7 @@
    <UPageCard
       :orientation="image ? 'horizontal' : 'vertical'"
       :class="image ? 'max-w-3xl' : 'max-w-md'"
+      :ui="{ container: image ? undefined : 'justify-center lg:flex' }"
       class="mx-auto my-8 min-h-[67dvh] w-full"
    >
       <NuxtImg
