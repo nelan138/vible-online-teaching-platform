@@ -47,9 +47,7 @@
             </template>
          </USidebar>
 
-         <UContainer class="py-6">
-            <slot />
-         </UContainer>
+         <slot />
       </UMain>
    </div>
 </template>
@@ -66,12 +64,6 @@ const isSidebarOpen = ref(false);
 const sidebarItems = computed<NavigationMenuItem[][]>(() => [
    [
       {
-         label: 'Recent activities',
-         icon: 'lucide:clock',
-         to: `/course/${courseId}`,
-         active: false,
-      },
-      {
          label: 'Content',
          icon: 'lucide:layers',
          to: `/course/${courseId}`,
@@ -85,21 +77,22 @@ const sidebarItems = computed<NavigationMenuItem[][]>(() => [
          to: `/course/${courseId}/discussion-forum`,
       },
       {
-         label: 'Roster',
-         icon: 'lucide:users',
-         to: `/course/${courseId}/roster`,
-      },
-      {
          label: 'Assignments',
          icon: 'lucide:swatch-book',
          to: `/course/${courseId}/assignments`,
       },
+      {
+         label: 'Roster',
+         icon: 'lucide:users',
+         to: `/course/${courseId}/roster`,
+      },
    ],
    [
       {
-         label: 'Back to Courses',
+         label: 'Go back',
          icon: 'lucide:arrow-left',
-         to: '/user/courses',
+         to: `/course/${courseId}`,
+         active: false,
       },
    ],
 ]);

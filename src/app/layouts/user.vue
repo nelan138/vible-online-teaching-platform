@@ -17,6 +17,8 @@
       </UHeader>
 
       <UMain>
+         <PageHero v-if="route.meta.showUserHero" />
+
          <slot />
       </UMain>
    </div>

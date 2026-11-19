@@ -1,5 +1,5 @@
 <template>
-   <UContainer class="py-8">
+   <UContainer>
       <UPageCard title="Set up your account" class="max-w-md mx-auto">
          <UForm :state="state" :validate="validate" :disabled="!userId" class="space-y-4" @submit="onSubmit">
             <UFormField name="name" label="Name" required>

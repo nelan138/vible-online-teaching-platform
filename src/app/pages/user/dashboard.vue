@@ -1,36 +1,32 @@
 <template>
-   <div>
-      <DashboardHero />
-
-      <UContainer class="py-8">
-         <DashboardSection title="My courses">
-            <template #header-actions>
-               <UButton
-                  to="/user/courses"
-                  label="view all"
-                  trailing-icon="lucide:chevrons-right"
-                  color="neutral"
-                  variant="link"
-               />
-            </template>
-
-            <DashboardCard
-               v-for="course in courses"
-               :key="course.id"
-               :to="`/course/${course.id}`"
-               :title="course.title"
-               :description="course.teacher"
-               class="mb-4"
+   <UContainer>
+      <PageSection title="My courses">
+         <template #header-actions>
+            <UButton
+               to="/user/courses"
+               label="view all"
+               trailing-icon="lucide:chevrons-right"
+               color="neutral"
+               variant="link"
             />
-         </DashboardSection>
-      </UContainer>
-   </div>
+         </template>
+
+         <PageCard v-for="course in courses" :key="course.id" class="mb-4 last:mb-0">
+            <NuxtLink :to="`/course/${course.id}`">
+               <H3>{{ course.title }}</H3>
+            </NuxtLink>
+
+            <Description>{{ course.teacher }}</Description>
+         </PageCard>
+      </PageSection>
+   </UContainer>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
    layout: 'user',
    middleware: 'authenticate-user',
+   showUserHero: true,
 });
 
 const coursesStore = useCoursesStore();

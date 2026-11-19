@@ -38,12 +38,8 @@
 </template>
 
 <script setup lang="ts">
-const {
-   title = undefined,
-   collapsible = false,
-   defaultOpen = true,
-} = defineProps<{
-   title?: string;
+const { collapsible = false, defaultOpen = true } = defineProps<{
+   title: string;
    collapsible?: boolean;
    defaultOpen?: boolean;
 }>();

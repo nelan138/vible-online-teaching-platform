@@ -1,17 +1,17 @@
 <template>
    <UContainer>
-      <AccountForm :form="{ fields, providers }" image="/images/3t.jpeg">
+      <FormAuth :form="{ fields, providers }">
          <template #password-hint>
-            <NuxtLink class="text-xs text-primary font-medium hover:underline"> Forgot password? </NuxtLink>
+            <Description class="text-primary hover:underline"> Forgot password? </Description>
          </template>
 
          <template #footer>
             <p class="text-center text-sm text-muted">
                Don't have an account?
-               <NuxtLink class="text-primary font-medium hover:underline"> Sign up </NuxtLink>
+               <Description class="inline text-primary hover:underline"> Sign up </Description>
             </p>
          </template>
-      </AccountForm>
+      </FormAuth>
    </UContainer>
 </template>
 
@@ -22,6 +22,8 @@ definePageMeta({ layout: 'account' });
 
 const toast = useToast();
 const auth = useAuth();
+
+/* *** */
 
 const fields: AuthFormField[] = [
    {
@@ -35,7 +37,7 @@ const fields: AuthFormField[] = [
       name: 'password',
       type: 'password',
       label: 'Password',
-      placeholder: '••••••••',
+      placeholder: 'enter your password',
       required: true,
    },
 ];
