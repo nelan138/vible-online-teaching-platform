@@ -1,37 +1,20 @@
 <template>
-   <div>Verifying. . .</div>
+   <div class="grid min-h-[calc(100dvh-var(--ui-header-height))] place-items-center px-4">
+      <div role="status" class="w-full max-w-48 space-y-3 text-center">
+         <p class="text-sm text-muted">Signing you in…</p>
+         
+         <UProgress size="sm" aria-hidden="true" />
+      </div>
+   </div>
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'account' });
-
-const toast = useToast();
-
-onMounted(async () => {
-   const [loggedIn, logInError] = await tryCatch(userIsLoggedIn());
-
-   if (logInError) {
-      toast.add({
-         title: 'Could not verify your session',
-         description: logInError.message || 'Please try again.',
-         color: 'error',
-      });
-      return;
-   }
-
-   if (!loggedIn) return navigateTo('/account/login');
-
-   const [setUp, setUpError] = await tryCatch(userSetupIsComplete());
-
-   if (setUpError) {
-      toast.add({
-         title: 'Could not verify your account setup',
-         description: setUpError.message || 'Please try again.',
-         color: 'error',
-      });
-      return;
-   }
-
-   return navigateTo(setUp ? '/user/dashboard' : '/user/setup');
+definePageMeta({
+   layout: 'account',
+   middleware: 'authenticate-user',
 });
+
+/* *** */
+
+onMounted(() => navigateTo('/user/dashboard'));
 </script>
