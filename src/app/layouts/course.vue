@@ -43,6 +43,7 @@
                   :items="sidebarItems"
                   :collapsed="state === 'collapsed'"
                   class="w-full"
+                  variant='link'
                />
             </template>
          </USidebar>

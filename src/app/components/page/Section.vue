@@ -13,7 +13,11 @@
                class="rounded-full"
                @click="isOpen = !isOpen"
             />
-            <H2>{{ title }}</H2>
+
+            <div>
+               <H2 :class="{ 'pb-0': !collapsible && description }">{{ title }}</H2>
+               <Description v-if="!collapsible && description" class="pb-4">{{ description }}</Description>
+            </div>
          </div>
 
          <div v-if="$slots['header-actions']" class="flex gap-4 items-center">
@@ -24,6 +28,8 @@
       <UCollapsible v-if="collapsible" v-model:open="isOpen" class="mt-4">
          <template #content>
             <UCard>
+               <Description v-if="description" class="mb-4">{{ description }}</Description>
+
                <slot />
 
                <template v-if="$slots.footer" #footer>
@@ -40,10 +46,12 @@
 <script setup lang="ts">
 const {
    title = undefined,
+   description = undefined,
    collapsible = false,
    defaultOpen = true,
 } = defineProps<{
    title?: string;
+   description?: string;
    collapsible?: boolean;
    defaultOpen?: boolean;
 }>();
