@@ -1,6 +1,12 @@
 <template>
    <UContainer>
-      <FormText class="ms-auto flex w-fit py-4" placeholder="Enter invite code" button-label="Join" />
+      <PageSection>
+         <UFieldGroup class="ms-auto flex w-fit">
+            <UInput placeholder="Enter invite code" />
+
+            <UButton label="Join" color="neutral" />
+         </UFieldGroup>
+      </PageSection>
 
       <PageSection title="My courses">
          <template #header-actions>
@@ -10,7 +16,7 @@
 
          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <PageCard v-for="course in courses" :key="course.id" image="/images/placeholder.svg">
-               <H3 class='hover:underline hover:text-info'>
+               <H3 class="hover:underline hover:text-info">
                   <NuxtLink :to="`/course/${course.id}`">
                      {{ course.title }}
                   </NuxtLink>
