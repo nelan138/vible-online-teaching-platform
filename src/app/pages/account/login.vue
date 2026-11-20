@@ -1,6 +1,6 @@
 <template>
    <UContainer>
-      <FormAuth :form="{ fields, providers }">
+      <AuthForm :form="{ fields, providers }">
          <template #password-hint>
             <Description class="text-primary hover:underline"> Forgot password? </Description>
          </template>
@@ -11,7 +11,7 @@
                <Description class="inline text-primary hover:underline"> Sign up </Description>
             </p>
          </template>
-      </FormAuth>
+      </AuthForm>
    </UContainer>
 </template>
 

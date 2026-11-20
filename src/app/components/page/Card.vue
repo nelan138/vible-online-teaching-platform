@@ -1,9 +1,9 @@
 <template>
-   <UCard :ui="image ? { header: 'p-0 sm:px-0 p-0' } : undefined">
-      <template v-if="image || $slots.header" #header>
-         <NuxtImg v-if="image" :src="image" :alt="imageAlt" class="block aspect-4/1 w-full object-cover" />
+   <UCard :ui="image && !$slots.header ? { header: 'p-0 sm:px-0 p-0' } : undefined">
+      <template v-if="$slots.header || image" #header>
+         <slot v-if="$slots.header" name="header" />
 
-         <slot v-else name="header" />
+         <NuxtImg v-else :src="image" :alt="imageAlt" class="block aspect-4/1 w-full object-cover" />
       </template>
 
       <slot />
