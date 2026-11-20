@@ -1,17 +1,17 @@
 import type { UserRecord } from '#shared/types/UserRecord';
 import { tryCatch } from '#shared/utils/tryCatch';
-import selectUserWhereId from '../../sql/selectUserWhereId.sql';
-import { useDatabase } from '../../utils/db';
+import selectUserWhereId from '../../../sql/user/selectUserWhereId.sql';
+import { useDatabase } from '../../../utils/db';
 
 export default defineEventHandler(async (event): Promise<UserRecord | null> => {
    const userId = await requireUserId(event);
-   const id = getRouterParam(event, 'id');
+   const requestedUserId = getRouterParam(event, 'userId');
 
-   if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+   if (!requestedUserId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestedUserId)) {
       throw createError({ statusCode: 400, statusMessage: 'Invalid user ID' });
    }
 
-   if (id.toLowerCase() !== userId) {
+   if (requestedUserId.toLowerCase() !== userId) {
       throw createError({ statusCode: 403, statusMessage: 'You cannot access another user profile' });
    }
 

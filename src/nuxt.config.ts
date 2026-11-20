@@ -11,6 +11,9 @@ export default defineNuxtConfig({
    css: ['~/assets/css/main.css'],
    compatibilityDate: '2025-07-15',
    devtools: { enabled: false },
+   imports: {
+      dirs: ['~/utils/auth', '~/utils/user', '~/utils/course'],
+   },
    routeRules: {
       '/user/dashboard': { ssr: false },
    },

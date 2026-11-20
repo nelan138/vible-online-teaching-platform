@@ -1,4 +1,4 @@
-import insertUser from '../../sql/insertUser.sql';
+import insertUser from '../../sql/user/insertUser.sql';
 
 export default defineEventHandler(async (event): Promise<UserRecord> => {
    const id = await requireUserId(event);
