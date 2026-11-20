@@ -14,6 +14,11 @@ export default defineNuxtConfig({
    imports: {
       dirs: ['~/utils/auth', '~/utils/user', '~/utils/course'],
    },
+   vite: {
+      optimizeDeps: {
+         include: ['@neon/auth', '@neon/auth/vanilla/adapters'],
+      },
+   },
    routeRules: {
       '/user/dashboard': { ssr: false },
    },

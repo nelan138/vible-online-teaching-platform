@@ -1,3 +1,3 @@
-SELECT id, name, description, "teacherId", "inviteCode"
+SELECT id, name, "teacherId", "inviteCode"
 FROM public.course
 WHERE "teacherId" = $1::uuid;

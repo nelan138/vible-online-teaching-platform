@@ -19,14 +19,10 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 403, statusMessage: 'You cannot create a course for another user' });
    }
 
-   const body = await readBody<Partial<Pick<CourseRecord, 'name' | 'description'>> | null>(event);
+   const body = await readBody<Partial<Pick<CourseRecord, 'name'>> | null>(event);
    const name = typeof body?.name === 'string' ? body.name.trim() : '';
-   const description = body?.description ?? null;
 
    if (!name) throw createError({ statusCode: 400, statusMessage: 'Course name is required' });
-   if (description !== null && typeof description !== 'string') {
-      throw createError({ statusCode: 400, statusMessage: 'Description must be a string or null' });
-   }
 
    const [profile, profileError] = await tryCatch(
       Promise.resolve().then(() => useDatabase().query<UserRecord>(selectUserWhereId, [teacherId]))
@@ -43,7 +39,7 @@ export default defineEventHandler(async (event) => {
    for (let attempt = 0; attempt < 3; attempt++) {
       const inviteCode = generateInviteCode();
       const [result, error] = await tryCatch(
-         useDatabase().query(insertCourse, [courseId, name, description, teacherId, inviteCode])
+         useDatabase().query(insertCourse, [courseId, name, teacherId, inviteCode])
       );
 
       if (!error && result.rowCount === 1) return sendNoContent(event, 201);
