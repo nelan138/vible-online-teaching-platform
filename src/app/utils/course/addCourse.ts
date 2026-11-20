@@ -1,6 +1,6 @@
 import type { CourseRecord } from '#shared/types/CourseRecord';
 
-export async function createCourse({
+export async function addCourse({
    name,
    description,
 }: Pick<CourseRecord, 'name'> & Partial<Pick<CourseRecord, 'description'>>): Promise<void> {
