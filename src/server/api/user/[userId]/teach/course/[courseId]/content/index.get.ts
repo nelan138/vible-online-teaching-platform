@@ -1,4 +1,4 @@
-import selectContentsWhereCourseId from '#server/sql/content/selectContentsWhereCourseId.sql';
+import selectContentsByCourseId from '#server/sql/content/selectContentsByCourseId.sql';
 import { useDatabase } from '#server/utils/db';
 import type { ContentRecord } from '#shared/types/ContentRecord';
 import { tryCatch } from '#shared/utils/tryCatch';
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event): Promise<ContentRecord[]> => {
 
    const [result, error] = await tryCatch(
       Promise.resolve().then(() => useDatabase().query<ContentRow | { id: null }>(
-         selectContentsWhereCourseId, [courseId, teacherId]
+         selectContentsByCourseId, [courseId, teacherId]
       ))
    );
 

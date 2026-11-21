@@ -1,4 +1,4 @@
-import selectCoursesWhereTeacherId from '#server/sql/course/selectCoursesWhereTeacherId.sql';
+import selectCoursesByTeacherId from '#server/sql/course/selectCoursesByTeacherId.sql';
 import { useDatabase } from '#server/utils/db';
 import type { CourseRecord } from '#shared/types/CourseRecord';
 import { tryCatch } from '#shared/utils/tryCatch';
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event): Promise<CourseRecord[]> => {
    }
 
    const [result, error] = await tryCatch(
-      Promise.resolve().then(() => useDatabase().query<CourseRecord>(selectCoursesWhereTeacherId, [userId]))
+      Promise.resolve().then(() => useDatabase().query<CourseRecord>(selectCoursesByTeacherId, [userId]))
    );
 
    if (error) {

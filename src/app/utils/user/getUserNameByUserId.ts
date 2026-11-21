@@ -1,6 +1,6 @@
 import type { UserRecord } from '#shared/types/UserRecord';
 
-export async function getUserNameWithUserId(userId: string): Promise<string> {
+export async function getUserNameByUserId(userId: string): Promise<string> {
    const user = await $fetch<UserRecord | null>(`/api/user/${encodeURIComponent(userId)}`, {
       headers: await getAuthHeaders(),
    });

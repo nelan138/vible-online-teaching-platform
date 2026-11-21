@@ -65,7 +65,7 @@ const { data: teacherNames } = useAsyncData<Record<string, string | null>>(
    async () => {
       const names = await Promise.all(
          teacherIds.value.map(async (teacherId) => {
-            const [name] = await tryCatch(getUserNameWithUserId(teacherId));
+            const [name] = await tryCatch(getUserNameByUserId(teacherId));
             return [teacherId, name] as const;
          })
       );

@@ -1,4 +1,4 @@
-import selectPendingEnrollmentsWhereCourseId from '#server/sql/enrollment/selectPendingEnrollmentsWhereCourseId.sql';
+import selectPendingEnrollmentsByCourseId from '#server/sql/enrollment/selectPendingEnrollmentsByCourseId.sql';
 import { useDatabase } from '#server/utils/db';
 import type { EnrollmentRecord } from '#shared/types/EnrollmentRecord';
 import { tryCatch } from '#shared/utils/tryCatch';
@@ -24,7 +24,7 @@ export default defineEventHandler(async (event): Promise<EnrollmentRecord[]> => 
 
    const [result, error] = await tryCatch(
       Promise.resolve().then(() => useDatabase().query<EnrollmentRecord>(
-         selectPendingEnrollmentsWhereCourseId, [courseId, teacherId]
+         selectPendingEnrollmentsByCourseId, [courseId, teacherId]
       ))
    );
 

@@ -1,6 +1,6 @@
 import type { ContentRecord } from '#shared/types/ContentRecord';
 
-export async function getContents(courseId: string): Promise<ContentRecord[]> {
+export async function getContentsByCourseId(courseId: string): Promise<ContentRecord[]> {
    const [userId, headers] = await Promise.all([getUserId(), getAuthHeaders()]);
    if (!userId) throw new Error('Please sign in to continue.');
 

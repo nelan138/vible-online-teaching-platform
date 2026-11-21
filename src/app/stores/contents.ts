@@ -13,7 +13,7 @@ export const useContentsStore = defineStore('contents', () => {
          contents.value = [];
       }
 
-      const request = getContents(courseId);
+      const request = getContentsByCourseId(courseId);
       latestRequest = request;
       const records = await request;
 

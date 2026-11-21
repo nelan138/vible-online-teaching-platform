@@ -1,6 +1,6 @@
 import type { UserRecord } from '#shared/types/UserRecord';
 import { tryCatch } from '#shared/utils/tryCatch';
-import selectUserWhereId from '../../../sql/user/selectUserWhereId.sql';
+import selectUserByUserId from '../../../sql/user/selectUserByUserId.sql';
 import { useDatabase } from '../../../utils/db';
 
 export default defineEventHandler(async (event): Promise<UserRecord | null> => {
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event): Promise<UserRecord | null> => {
    }
 
    const [result, error] = await tryCatch(
-      Promise.resolve().then(() => useDatabase().query<UserRecord>(selectUserWhereId, [userId]))
+      Promise.resolve().then(() => useDatabase().query<UserRecord>(selectUserByUserId, [userId]))
    );
 
    if (error) {

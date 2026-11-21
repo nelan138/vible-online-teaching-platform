@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import insertCourse from '#server/sql/course/insertCourse.sql';
-import selectUserWhereId from '#server/sql/user/selectUserWhereId.sql';
+import selectUserByUserId from '#server/sql/user/selectUserByUserId.sql';
 import { useDatabase } from '#server/utils/db';
 import { generateInviteCode } from '#server/utils/generateInviteCode';
 import type { CourseRecord } from '#shared/types/CourseRecord';
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
    if (!name) throw createError({ statusCode: 400, statusMessage: 'Course name is required' });
 
    const [profile, profileError] = await tryCatch(
-      Promise.resolve().then(() => useDatabase().query<UserRecord>(selectUserWhereId, [teacherId]))
+      Promise.resolve().then(() => useDatabase().query<UserRecord>(selectUserByUserId, [teacherId]))
    );
 
    if (profileError) {

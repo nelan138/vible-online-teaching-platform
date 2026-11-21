@@ -1,5 +1,5 @@
 import insertEnrollment from '#server/sql/enrollment/insertEnrollment.sql';
-import selectUserWhereId from '#server/sql/user/selectUserWhereId.sql';
+import selectUserByUserId from '#server/sql/user/selectUserByUserId.sql';
 import { useDatabase } from '#server/utils/db';
 import type { CourseRecord } from '#shared/types/CourseRecord';
 import type { UserRecord } from '#shared/types/UserRecord';
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
    }
 
    const [profile, profileError] = await tryCatch(
-      Promise.resolve().then(() => useDatabase().query<UserRecord>(selectUserWhereId, [studentId]))
+      Promise.resolve().then(() => useDatabase().query<UserRecord>(selectUserByUserId, [studentId]))
    );
 
    if (profileError) {
