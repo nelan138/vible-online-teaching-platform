@@ -8,7 +8,7 @@
          <template #footer>
             <p class="text-center text-sm text-muted">
                Don't have an account?
-               <Description class="inline text-primary hover:underline"> Sign up </Description>
+               <span class="text-primary hover:underline"> Sign up </span>
             </p>
          </template>
       </AuthForm>
@@ -53,30 +53,28 @@ const providers: ButtonProps[] = [
 
 onMounted(async () => {
    const [loggedIn, logInError] = await tryCatch(userIsLoggedIn());
-   if (logInError || !loggedIn) return;
 
-   const [setUp, setUpError] = await tryCatch(userSetupIsComplete());
-
-   if (setUpError) {
+   if (logInError) {
       toast.add({
-         title: 'Could not verify your account setup',
-         description: setUpError.message || 'Please try again.',
+         title: 'Could not verify your session',
+         description: logInError.message || 'Please try again.',
          color: 'error',
       });
       return;
    }
 
-   return navigateTo(setUp ? '/user/dashboard' : '/user/setup');
+   if (loggedIn) return navigateTo('/user/dashboard', { replace: true });
 });
 
 async function onGoogleSignIn() {
-   const [, error] = await tryCatch(
+   const [result, requestError] = await tryCatch(
       auth.signIn.social({
          provider: 'google',
          callbackURL: new URL('/account/login', window.location.origin).href,
       })
    );
 
+   const error = requestError ?? result?.error;
    if (error) {
       toast.add({
          title: 'Google sign-in failed',

@@ -13,6 +13,8 @@ export async function getUser(): Promise<UserRecord | null> {
    const id = data.user.id;
    const user = await $fetch<UserRecord | null>(`/api/user/${encodeURIComponent(id)}`, {
       headers: { Authorization: `Bearer ${token}` },
+      timeout: 15_000,
+      retry: false,
    });
 
    return user?.id === id.toLowerCase() ? user : null;

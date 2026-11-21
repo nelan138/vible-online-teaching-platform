@@ -17,7 +17,7 @@
                   <H3>{{ course.name }}</H3>
                </NuxtLink>
 
-               <Description>{{ course.teacherId }}</Description>
+               <Description>{{ user.name }}</Description>
             </PageCard>
          </template>
       </PageSection>

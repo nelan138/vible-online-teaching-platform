@@ -1,4 +1,4 @@
-export async function createUser(user: Pick<UserRecord, 'name' | 'role'>): Promise<UserRecord> {
+export async function addUser(user: Pick<UserRecord, 'name' | 'role'>): Promise<UserRecord> {
    return $fetch<UserRecord>('/api/user', {
       method: 'POST',
       headers: await getAuthHeaders(),

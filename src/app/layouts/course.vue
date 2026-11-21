@@ -43,10 +43,22 @@
                   :items="sidebarItems"
                   :collapsed="state === 'collapsed'"
                   class="w-full"
-                  variant='link'
+                  variant="link"
                />
             </template>
          </USidebar>
+
+         <FloatingPanel>
+            <UButton icon="lucide:plus" label="Add content" aria-haspopup="dialog" />
+
+            <UButton
+               icon="lucide:square-arrow-left-exit"
+               label="Log out"
+               loading-auto
+               color="warning"
+               @click="logOut"
+            />
+         </FloatingPanel>
 
          <slot />
       </UMain>

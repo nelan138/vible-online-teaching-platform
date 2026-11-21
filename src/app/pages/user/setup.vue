@@ -94,7 +94,7 @@ async function onSubmit() {
    if (!userId.value || !state.role) return;
 
    const [, error] = await tryCatch(
-      createUser({
+      addUser({
          name: state.name.trim(),
          role: state.role,
       })

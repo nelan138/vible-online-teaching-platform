@@ -9,45 +9,6 @@
       </PageSection>
 
       <PageSection title="My courses">
-         <template v-if="user.role === 'teacher'" #header-actions>
-            <UModal
-               v-if="user.role === 'teacher'"
-               v-model:open="addCourseOpen"
-               title="Add course"
-               :close="{ disabled: savingCourse }"
-               :dismissible="!savingCourse"
-               :ui="{ footer: 'justify-end' }"
-               @update:open="(open) => open && resetCourseForm()"
-            >
-               <UButton icon="lucide:plus" variant="ghost" color="neutral" aria-label="Add course" title="Add course" />
-
-               <template #body>
-                  <UForm
-                     id="add-course-form"
-                     :state="courseForm"
-                     :validate="validateCourse"
-                     class="space-y-4"
-                     @submit="submitCourse"
-                  >
-                     <UFormField name="name" label="Course name" required>
-                        <UInput v-model="courseForm.name" class="w-full" />
-                     </UFormField>
-
-                     <p v-if="courseSaveFailed" role="alert" class="text-sm text-error">
-                        Could not add the course. Please try again.
-                     </p>
-                  </UForm>
-               </template>
-
-               <template #footer="{ close }">
-                  <UButton label="Cancel" color="neutral" variant="outline" :disabled="savingCourse" @click="close" />
-                  <UButton type="submit" form="add-course-form" label="Add course" :loading="savingCourse" />
-               </template>
-            </UModal>
-
-            <UButton icon="lucide:ellipsis-vertical" variant="ghost" color="neutral" />
-         </template>
-
          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- ! Teacher Only -->
             <template v-if="user.role === 'teacher'">
@@ -82,8 +43,6 @@
 </template>
 
 <script setup lang="ts">
-import type { FormError } from '@nuxt/ui';
-
 definePageMeta({
    layout: 'user',
 });
@@ -114,31 +73,4 @@ const { data: teacherNames } = useAsyncData<Record<string, string | null>>(
    },
    { server: false, default: () => ({}), watch: [() => teacherIds.value.join(',')] }
 );
-
-const addCourseOpen = ref(false);
-const savingCourse = ref(false);
-const courseSaveFailed = ref(false);
-const courseForm = reactive({ name: '' });
-
-function resetCourseForm() {
-   courseForm.name = '';
-   courseSaveFailed.value = false;
-}
-
-function validateCourse(data: typeof courseForm): FormError[] {
-   return data.name.trim() ? [] : [{ name: 'name', message: 'Enter a course name.' }];
-}
-
-async function submitCourse() {
-   if (savingCourse.value) return;
-
-   savingCourse.value = true;
-   courseSaveFailed.value = false;
-
-   const [, error] = await tryCatch(coursesStore.add({ name: courseForm.name.trim() }));
-
-   savingCourse.value = false;
-   courseSaveFailed.value = Boolean(error);
-   if (!error) addCourseOpen.value = false;
-}
 </script>

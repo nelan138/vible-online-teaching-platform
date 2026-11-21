@@ -7,7 +7,7 @@ export default defineNuxtPlugin(() => {
    return {
       provide: {
          auth: createAuthClient(config.public.neonAuthUrl, {
-            adapter: BetterAuthVanillaAdapter(),
+            adapter: BetterAuthVanillaAdapter({ fetchOptions: { timeout: 10_000 } }),
          }),
       },
    };
