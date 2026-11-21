@@ -1,5 +1,9 @@
 <template>
-   <UDropdownMenu class="fixed bottom-8 right-8 z-1000" :content="{ side: 'top', align: 'end' }">
+   <UDropdownMenu
+      class="fixed bottom-8 right-8 z-1000"
+      :content="{ side: 'top', align: 'end' }"
+      :ui="{ content: 'bg-transparent shadow-none ring-0' }"
+   >
       <template #default="{ open }">
          <UButton
             :icon="open ? 'lucide:x' : 'lucide:paw-print'"
