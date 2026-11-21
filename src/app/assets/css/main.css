@@ -1,2 +1,14 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+@utility heading-* {
+   @apply font-semibold text-highlighted;
+   font-size: --value(--text-*);
+   line-height: var(--tw-leading, --value(--text-*--line-height));
+}
+
+@utility text-link {
+   @variant hover {
+      @apply cursor-pointer text-info underline;
+   }
+}

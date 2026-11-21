@@ -9,9 +9,5 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-   layout: 'account',
-});
-
 onMounted(() => navigateTo('/user/dashboard', { replace: true }));
 </script>

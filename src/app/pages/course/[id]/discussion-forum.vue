@@ -4,7 +4,9 @@
 
 <script setup lang="ts">
 definePageMeta({
-   layout: 'course',
+   layout: 'app',
+   middleware: 'authenticate-user',
+   showCourseSidebar: true,
 });
 </script>
 

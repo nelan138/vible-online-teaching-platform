@@ -1,25 +1,21 @@
 <template>
-   <UContainer>
-      <UPageCard title="Set up your account" class="max-w-md mx-auto">
-         <UForm :state="state" :validate="validate" :disabled="!userId" class="space-y-4" @submit="onSubmit">
-            <UFormField name="name" label="Name" required>
-               <UInput v-model="state.name" placeholder="Your name" autocomplete="name" class="w-full" />
-            </UFormField>
+   <UPageCard class="my-8 max-w-md mx-auto">
+      <UForm :state="state" :validate="validate" class="space-y-4" @submit="onSubmit">
+         <UFormField name="name" label="Name" required>
+            <UInput v-model="state.name" placeholder="Your name" autocomplete="name" class="w-full" />
+         </UFormField>
 
-            <UFormField name="role" label="Role" required>
-               <USelect v-model="state.role" :items="roles" placeholder="Choose your role" class="w-full" />
-            </UFormField>
+         <UFormField name="role" label="Role" required>
+            <USelect v-model="state.role" :items="roles" placeholder="Choose your role" class="w-full" />
+         </UFormField>
 
-            <UButton type="submit" label="Complete setup" block />
-         </UForm>
-      </UPageCard>
-   </UContainer>
+         <UButton type="submit" label="Complete setup" class="my-4" block />
+      </UForm>
+   </UPageCard>
 </template>
 
 <script setup lang="ts">
 import type { FormError } from '@nuxt/ui';
-
-definePageMeta({ layout: 'account' });
 
 const toast = useToast();
 const userStore = useUserStore();
@@ -52,7 +48,7 @@ onMounted(async () => {
 
    if (!loggedIn) return navigateTo('/account/login');
 
-   const [setUp, setUpError] = await tryCatch(userSetupIsComplete());
+   const [setUp, setUpError] = await tryCatch(accountIsSetup());
 
    if (setUpError) {
       toast.add({

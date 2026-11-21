@@ -15,8 +15,8 @@
             />
 
             <div>
-               <H2 :class="{ 'pb-0': !collapsible && description }">{{ title }}</H2>
-               <Description v-if="!collapsible && description" class="pb-4">{{ description }}</Description>
+               <h2 class="heading-xl py-4" :class="{ 'pb-0': !collapsible && description }">{{ title }}</h2>
+               <p v-if="!collapsible && description">{{ description }}</p>
             </div>
          </div>
 
@@ -28,7 +28,7 @@
       <UCollapsible v-if="collapsible" v-model:open="isOpen" class="mt-4">
          <template #content>
             <UCard>
-               <Description v-if="description" class="mb-4">{{ description }}</Description>
+               <p v-if="description">{{ description }}</p>
 
                <slot />
 

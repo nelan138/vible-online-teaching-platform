@@ -10,5 +10,5 @@ export default defineNuxtRouteMiddleware(async () => {
       if (!loggedIn) return navigateTo('/account/login');
    }
 
-   if (!(await userSetupIsComplete(user))) return navigateTo('/user/setup');
+   if (!(await accountIsSetup(user))) return navigateTo('/account/setup');
 });

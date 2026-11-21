@@ -35,64 +35,14 @@
             />
          </PageCardList>
       </PageSection>
-
-      <FloatingPanel>
-         <UButton icon="lucide:plus" label="Add content" aria-haspopup="dialog" @click="openAddContentModal" />
-
-         <UButton icon="lucide:link" label="Invite people" />
-
-         <UButton icon="lucide:square-arrow-left-exit" label="Log out" loading-auto color="warning" @click="logOut" />
-      </FloatingPanel>
-
-      <UModal
-         v-model:open="addContentOpen"
-         title="Add content"
-         :close="{ disabled: savingContent }"
-         :dismissible="!savingContent"
-      >
-         <template #body>
-            <UForm
-               :state="contentForm"
-               :validate="validateContent"
-               :disabled="savingContent"
-               class="space-y-4"
-               @submit="submitContent"
-            >
-               <UFormField label="Title" name="title" required>
-                  <UInput v-model="contentForm.title" class="w-full" />
-               </UFormField>
-
-               <UFormField label="Description" name="description" hint="Optional">
-                  <UTextarea v-model="contentForm.description" :rows="4" class="w-full" />
-               </UFormField>
-
-               <p v-if="contentSaveFailed" role="alert" class="text-sm text-error">
-                  Could not add the content. Please try again.
-               </p>
-
-               <div class="flex justify-end gap-2">
-                  <UButton
-                     type="button"
-                     label="Cancel"
-                     color="neutral"
-                     variant="outline"
-                     :disabled="savingContent"
-                     @click="addContentOpen = false"
-                  />
-
-                  <UButton type="submit" label="Add content" :loading="savingContent" />
-               </div>
-            </UForm>
-         </template>
-      </UModal>
    </UContainer>
 </template>
 
 <script setup lang="ts">
-import type { FormError, FormSubmitEvent } from '@nuxt/ui';
-
 definePageMeta({
-   layout: 'course',
+   layout: 'app',
+   middleware: 'authenticate-user',
+   showCourseSidebar: true,
 });
 
 const route = useRoute();
@@ -110,14 +60,12 @@ const { filesByContentId } = storeToRefs(fileContentsStore);
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
 const uploadingContentIds = reactive(new Set<string>());
 let filePickerContentId: string | undefined;
-const addContentOpen = ref(false);
-const contentForm = reactive({ title: '', description: '' });
-const savingContent = ref(false);
-const contentSaveFailed = ref(false);
 
 onMounted(async () => {
    const records = await contentsStore.getContents(courseId);
-   const fileLoads = Promise.allSettled(records.map((content) => fileContentsStore.getFileContents(courseId, content.id)));
+   const fileLoads = Promise.allSettled(
+      records.map((content) => fileContentsStore.getFileContents(courseId, content.id))
+   );
    courseName.value = await getCourseNameByCourseId(courseId);
    await fileLoads;
 });
@@ -138,52 +86,20 @@ async function attachFiles(event: Event) {
    if (!files.length) return;
 
    uploadingContentIds.add(contentId);
-   try {
-      const failedFiles: string[] = [];
-      for (const file of files) {
-         const [, error] = await tryCatch(fileContentsStore.addFileContent({ courseId, contentId, file }));
-         if (error) failedFiles.push(file.name);
-      }
-
-      if (failedFiles.length) {
-         toast.add({
-            title: 'Could not attach files',
-            description: failedFiles.join(', '),
-            color: 'error',
-         });
-      }
-   } finally {
-      uploadingContentIds.delete(contentId);
+   const failedFiles: string[] = [];
+   for (const file of files) {
+      const [, error] = await tryCatch(fileContentsStore.addFileContent({ courseId, contentId, file }));
+      if (error) failedFiles.push(file.name);
    }
-}
+   uploadingContentIds.delete(contentId);
 
-function openAddContentModal() {
-   contentForm.title = '';
-   contentForm.description = '';
-   contentSaveFailed.value = false;
-   addContentOpen.value = true;
-}
-
-function validateContent(data: typeof contentForm): FormError[] {
-   return data.title.trim() ? [] : [{ name: 'title', message: 'Enter a title.' }];
-}
-
-async function submitContent({ data }: FormSubmitEvent<typeof contentForm>) {
-   if (savingContent.value) return;
-
-   savingContent.value = true;
-   contentSaveFailed.value = false;
-   const [, error] = await tryCatch(
-      contentsStore.addContent({
-         courseId,
-         title: data.title.trim(),
-         description: data.description.trim() ? data.description : null,
-      })
-   );
-   savingContent.value = false;
-
-   if (error) contentSaveFailed.value = true;
-   else addContentOpen.value = false;
+   if (failedFiles.length) {
+      toast.add({
+         title: 'Could not attach files',
+         description: failedFiles.join(', '),
+         color: 'error',
+      });
+   }
 }
 </script>
 

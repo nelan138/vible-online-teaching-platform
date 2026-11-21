@@ -1,4 +1,4 @@
-export async function userSetupIsComplete(user?: UserRecord | null): Promise<boolean> {
+export async function accountIsSetup(user?: UserRecord | null): Promise<boolean> {
    const profile = user === undefined ? await getUser() : user;
 
    return Boolean(

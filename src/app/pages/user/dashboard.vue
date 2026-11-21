@@ -2,22 +2,16 @@
    <UContainer>
       <PageSection title="My courses">
          <template #header-actions>
-            <UButton
-               to="/user/courses"
-               label="view all"
-               trailing-icon="lucide:chevrons-right"
-               color="neutral"
-               variant="link"
-            />
+            <UButton to="/user/courses" label="view all" trailing-icon="lucide:chevrons-right" variant="link" />
          </template>
 
          <template v-if="user.role === 'teacher'">
             <PageCard v-for="course in courses" :key="course.id" class="mb-4 last:mb-0">
                <NuxtLink :to="`/course/${course.id}`">
-                  <H3>{{ course.name }}</H3>
+                  <h3 class="heading-base line-clamp-1 text-link">{{ course.name }}</h3>
                </NuxtLink>
 
-               <Description>{{ user.name }}</Description>
+               <p class="text-xs text-muted mt-2">Teacher: {{ user.name }}</p>
             </PageCard>
          </template>
       </PageSection>
@@ -26,7 +20,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-   layout: 'user',
+   layout: 'app',
    middleware: 'authenticate-user',
    showUserHero: true,
 });
