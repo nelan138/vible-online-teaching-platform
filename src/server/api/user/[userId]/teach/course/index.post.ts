@@ -1,11 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import insertCourse from '#server/sql/course/insertCourse.sql';
 import selectUserByUserId from '#server/sql/user/selectUserByUserId.sql';
-import { useDatabase } from '#server/utils/db';
-import { generateInviteCode } from '#server/utils/generateInviteCode';
-import type { CourseRecord } from '#shared/types/CourseRecord';
-import type { UserRecord } from '#shared/types/UserRecord';
-import { tryCatch } from '#shared/utils/tryCatch';
 
 export default defineEventHandler(async (event) => {
    const teacherId = await requireUserId(event);

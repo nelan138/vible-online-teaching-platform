@@ -1,7 +1,4 @@
 import selectCoursesByStudentId from '#server/sql/course/selectCoursesByStudentId.sql';
-import { useDatabase } from '#server/utils/db';
-import type { CourseRecord } from '#shared/types/CourseRecord';
-import { tryCatch } from '#shared/utils/tryCatch';
 
 type StudentCourseRecord = Omit<CourseRecord, 'inviteCode'>;
 

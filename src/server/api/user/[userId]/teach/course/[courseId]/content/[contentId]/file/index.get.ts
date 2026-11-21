@@ -1,7 +1,4 @@
 import selectFilesByContentId from '#server/sql/content/selectFilesByContentId.sql';
-import { useDatabase } from '#server/utils/db';
-import type { FileRecord } from '#shared/types/FileRecord';
-import { tryCatch } from '#shared/utils/tryCatch';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

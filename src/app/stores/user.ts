@@ -1,11 +1,12 @@
-import type { UserRecord } from '#shared/types/UserRecord';
+import { addUser as createUser } from '~/utils/user/addUser';
+import { getUser as fetchUser } from '~/utils/user/getUser';
 
 export const useUserStore = defineStore('user', () => {
    const user = ref<UserRecord | null>(null);
    let latestRequest: Promise<UserRecord | null> | undefined;
 
-   async function load(): Promise<UserRecord | null> {
-      const request = getUser();
+   async function getUser(): Promise<UserRecord | null> {
+      const request = fetchUser();
       latestRequest = request;
       const [profile, error] = await tryCatch(request);
 
@@ -14,5 +15,12 @@ export const useUserStore = defineStore('user', () => {
       return profile;
    }
 
-   return { user, load };
+   async function addUser(input: Parameters<typeof createUser>[0]): Promise<UserRecord> {
+      const profile = await createUser(input);
+      latestRequest = undefined;
+      user.value = profile;
+      return profile;
+   }
+
+   return { user, getUser, addUser };
 });

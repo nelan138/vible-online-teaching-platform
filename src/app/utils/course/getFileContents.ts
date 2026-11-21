@@ -1,8 +1,5 @@
-import type { FileRecord } from '#shared/types/FileRecord';
-
 export async function getFileContents(courseId: string, contentId: string): Promise<FileRecord[]> {
-   const [userId, headers] = await Promise.all([getUserId(), getAuthHeaders()]);
-   if (!userId) throw new Error('Please sign in to continue.');
+   const { userId, headers } = await getUserIdAndAuthHeaders();
 
    return $fetch<FileRecord[]>(
       `/api/user/${encodeURIComponent(userId)}/teach/course/${encodeURIComponent(courseId)}/content/${encodeURIComponent(contentId)}/file`,

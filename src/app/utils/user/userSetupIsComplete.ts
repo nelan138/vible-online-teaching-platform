@@ -1,5 +1,3 @@
-import type { UserRecord } from '#shared/types/UserRecord';
-
 export async function userSetupIsComplete(user?: UserRecord | null): Promise<boolean> {
    const profile = user === undefined ? await getUser() : user;
 

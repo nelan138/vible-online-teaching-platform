@@ -1,9 +1,5 @@
 import insertEnrollment from '#server/sql/enrollment/insertEnrollment.sql';
 import selectUserByUserId from '#server/sql/user/selectUserByUserId.sql';
-import { useDatabase } from '#server/utils/db';
-import type { CourseRecord } from '#shared/types/CourseRecord';
-import type { UserRecord } from '#shared/types/UserRecord';
-import { tryCatch } from '#shared/utils/tryCatch';
 
 export default defineEventHandler(async (event) => {
    const studentId = await requireUserId(event);

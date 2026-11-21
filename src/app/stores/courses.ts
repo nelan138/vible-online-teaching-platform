@@ -1,11 +1,12 @@
-import type { CourseRecord } from '#shared/types/CourseRecord';
+import { addCourse as createCourse } from '~/utils/course/addCourse';
+import { getCourses as fetchCourses } from '~/utils/course/getCourses';
 
 export const useCoursesStore = defineStore('courses', () => {
    const courses = ref<CourseRecord[]>([]);
    let latestRequest: Promise<CourseRecord[]> | undefined;
 
-   async function load(): Promise<CourseRecord[]> {
-      const request = getCourses();
+   async function getCourses(): Promise<CourseRecord[]> {
+      const request = fetchCourses();
       latestRequest = request;
       const records = await request;
 
@@ -13,13 +14,13 @@ export const useCoursesStore = defineStore('courses', () => {
       return records;
    }
 
-   async function add(course: Parameters<typeof addCourse>[0]): Promise<void> {
-      await addCourse(course);
+   async function addCourse(course: Parameters<typeof createCourse>[0]): Promise<void> {
+      await createCourse(course);
       // The course was created even if refreshing the list fails.
-      await load().catch(() => undefined);
+      await tryCatch(getCourses());
    }
 
-   if (import.meta.client) void load().catch(() => undefined);
+   if (import.meta.client) void tryCatch(getCourses());
 
-   return { courses, load, add };
+   return { courses, getCourses, addCourse };
 });

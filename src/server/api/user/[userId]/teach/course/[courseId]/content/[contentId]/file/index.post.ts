@@ -6,10 +6,6 @@ import mime from 'mime';
 import { DatabaseError } from 'pg';
 import insertFileContent from '#server/sql/content/insertFileContent.sql';
 import selectContentByContentId from '#server/sql/content/selectContentByContentId.sql';
-import { useDatabase } from '#server/utils/db';
-import type { FileContentRecord } from '#shared/types/FileContentRecord';
-import type { FileRecord } from '#shared/types/FileRecord';
-import { tryCatch } from '#shared/utils/tryCatch';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const bucket = 'vible-files';
@@ -67,7 +63,7 @@ async function readUpload(event: H3Event): Promise<File> {
    return file;
 }
 
-function getFileMimeType(name: string, body: Buffer): string {
+async function getFileMimeType(name: string, body: Buffer): Promise<string> {
    const mimeType = mime.getType(name);
 
    if (mimeType === 'application/pdf' && /^%PDF-\d\.\d/.test(body.toString('ascii', 0, 8))) {
@@ -84,12 +80,8 @@ function getFileMimeType(name: string, body: Buffer): string {
       if (/^(?:<\?xml\b[^?]*\?>\s*)?(?:<!DOCTYPE\s+svg\b[^>]*>\s*)?<svg[\s/>]/.test(svg)
          && /(?:\/>|<\/svg\s*>)$/.test(svg)) return mimeType;
    } else if (mimeType?.startsWith('image/')) {
-      try {
-         const { type } = imageMeta(body);
-         if (type && mime.getType(type) === mimeType) return mimeType;
-      } catch {
-         // Invalid or unrecognized images receive the same response as unsupported file types.
-      }
+      const [metadata] = await tryCatch(Promise.resolve().then(() => imageMeta(body)));
+      if (metadata?.type && mime.getType(metadata.type) === mimeType) return mimeType;
    }
 
    throw createError({ statusCode: 415, statusMessage: 'Only PDFs, images, and ZIP archives are accepted' });
@@ -128,7 +120,7 @@ export default defineEventHandler(async (event): Promise<FileRecord> => {
    const record: FileRecord = {
       id: `content/${target.id}/${randomUUID()}`,
       name: file.name,
-      mimeType: getFileMimeType(file.name, body),
+      mimeType: await getFileMimeType(file.name, body),
       sizeBytes: String(file.size),
    };
    const storage = getStorageClient();
@@ -150,9 +142,8 @@ export default defineEventHandler(async (event): Promise<FileRecord> => {
    if (!inserted?.rows[0]) {
       // A lost database connection can leave the commit outcome unknown.
       if (!insertError || (insertError instanceof DatabaseError && insertError.severity === 'ERROR')) {
-         await storage.send(new DeleteObjectCommand(object)).catch(() => {
-            console.error('Could not remove unlinked upload', record.id);
-         });
+         const [, cleanupError] = await tryCatch(storage.send(new DeleteObjectCommand(object)));
+         if (cleanupError) console.error('Could not remove unlinked upload', record.id);
       } else {
          console.error('Could not confirm attachment metadata for upload', record.id);
       }

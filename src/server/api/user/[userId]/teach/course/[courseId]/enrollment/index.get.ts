@@ -1,7 +1,4 @@
 import selectPendingEnrollmentsByCourseId from '#server/sql/enrollment/selectPendingEnrollmentsByCourseId.sql';
-import { useDatabase } from '#server/utils/db';
-import type { EnrollmentRecord } from '#shared/types/EnrollmentRecord';
-import { tryCatch } from '#shared/utils/tryCatch';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

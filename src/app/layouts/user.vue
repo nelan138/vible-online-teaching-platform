@@ -12,7 +12,7 @@
 
             <UColorModeButton />
 
-            <UButton icon="lucide:user" variant="ghost" color="neutral" to="profile" />
+            <UButton icon="lucide:user" variant="ghost" color="neutral" aria-label="Profile" disabled />
          </template>
       </UHeader>
 
@@ -69,18 +69,17 @@ const route = useRoute();
 const navigationItems = computed<NavigationMenuItem[]>(() => [
    {
       label: 'Dashboard',
-      to: 'dashboard',
+      to: '/user/dashboard',
       active: route.path.startsWith('/user/dashboard'),
    },
    {
       label: 'My courses',
-      to: 'courses',
+      to: '/user/courses',
       active: route.path.startsWith('/user/courses'),
    },
    {
       label: 'Notifications',
-      to: 'notifications',
-      active: route.path.startsWith('/user/notifications'),
+      disabled: true,
    },
 ]);
 
@@ -104,7 +103,7 @@ async function submitCourse() {
 
    savingCourse.value = true;
    courseSaveFailed.value = false;
-   const [, error] = await tryCatch(useCoursesStore().add({ name: courseForm.name.trim() }));
+   const [, error] = await tryCatch(useCoursesStore().addCourse({ name: courseForm.name.trim() }));
    savingCourse.value = false;
 
    if (error) courseSaveFailed.value = true;

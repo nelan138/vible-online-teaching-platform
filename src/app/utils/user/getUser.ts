@@ -1,5 +1,3 @@
-import type { UserRecord } from '#shared/types/UserRecord';
-
 export async function getUser(): Promise<UserRecord | null> {
    const auth = useAuth();
    const { data, error } = await auth.getSession();

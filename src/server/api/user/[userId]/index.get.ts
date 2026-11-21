@@ -1,7 +1,4 @@
-import type { UserRecord } from '#shared/types/UserRecord';
-import { tryCatch } from '#shared/utils/tryCatch';
 import selectUserByUserId from '../../../sql/user/selectUserByUserId.sql';
-import { useDatabase } from '../../../utils/db';
 
 export default defineEventHandler(async (event): Promise<UserRecord | null> => {
    const userId = await requireUserId(event);

@@ -19,9 +19,7 @@
                      </NuxtLink>
                   </H3>
 
-                  <Description v-if="teacherNames[course.teacherId] !== undefined">
-                     {{ teacherNames[course.teacherId] ?? 'Unknown teacher' }}
-                  </Description>
+                  <Description>{{ user.name }}</Description>
 
                   <template #footer>
                      <div class="flex justify-between items-center">
@@ -45,6 +43,7 @@
 <script setup lang="ts">
 definePageMeta({
    layout: 'user',
+   middleware: 'authenticate-user',
 });
 
 const coursesStore = useCoursesStore();
@@ -58,19 +57,4 @@ const user = computed(() => {
    if (!profile) throw createError({ statusCode: 503, statusMessage: 'Account profile is unavailable' });
    return profile;
 });
-
-const teacherIds = computed(() => [...new Set(courses.value.map((course) => course.teacherId))]);
-const { data: teacherNames } = useAsyncData<Record<string, string | null>>(
-   'course-teacher-names',
-   async () => {
-      const names = await Promise.all(
-         teacherIds.value.map(async (teacherId) => {
-            const [name] = await tryCatch(getUserNameByUserId(teacherId));
-            return [teacherId, name] as const;
-         })
-      );
-      return Object.fromEntries(names);
-   },
-   { server: false, default: () => ({}), watch: [() => teacherIds.value.join(',')] }
-);
 </script>

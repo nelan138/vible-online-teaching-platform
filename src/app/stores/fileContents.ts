@@ -1,26 +1,23 @@
-import type { FileRecord } from '#shared/types/FileRecord';
 import { addFileContent as uploadFileContent } from '~/utils/course/addFileContent';
+import { getFileContents as fetchFileContents } from '~/utils/course/getFileContents';
 
 export const useFileContentsStore = defineStore('fileContents', () => {
    const filesByContentId = ref<Partial<Record<string, FileRecord[]>>>({});
    const latestRequests = new Map<string, Promise<FileRecord[]>>();
 
-   async function load(courseId: string, contentId: string): Promise<FileRecord[]> {
+   async function getFileContents(courseId: string, contentId: string): Promise<FileRecord[]> {
       const normalizedContentId = contentId.toLowerCase();
-      const request = getFileContents(courseId, contentId);
+      const request = fetchFileContents(courseId, contentId);
       latestRequests.set(normalizedContentId, request);
 
-      try {
-         const files = await request;
-         if (latestRequests.get(normalizedContentId) === request) {
-            filesByContentId.value[normalizedContentId] = files;
-         }
-         return files;
-      } finally {
-         if (latestRequests.get(normalizedContentId) === request) {
-            latestRequests.delete(normalizedContentId);
-         }
+      const [files, error] = await tryCatch(request);
+      if (latestRequests.get(normalizedContentId) === request) {
+         latestRequests.delete(normalizedContentId);
+         if (!error) filesByContentId.value[normalizedContentId] = files;
       }
+
+      if (error) throw error;
+      return files;
    }
 
    async function addFileContent(input: Parameters<typeof uploadFileContent>[0]): Promise<FileRecord> {
@@ -28,7 +25,8 @@ export const useFileContentsStore = defineStore('fileContents', () => {
       const file = await uploadFileContent(input);
 
       // A list requested before the upload finished may not include the new file.
-      await latestRequests.get(contentId)?.catch(() => undefined);
+      const request = latestRequests.get(contentId);
+      if (request) await tryCatch(request);
       const files = filesByContentId.value[contentId] ?? [];
       if (!files.some(item => item.id === file.id)) {
          filesByContentId.value[contentId] = [...files, file].sort(
@@ -39,5 +37,5 @@ export const useFileContentsStore = defineStore('fileContents', () => {
       return file;
    }
 
-   return { filesByContentId, load, addFileContent };
+   return { filesByContentId, getFileContents, addFileContent };
 });

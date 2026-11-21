@@ -21,6 +21,7 @@ export default defineNuxtConfig({
    },
    routeRules: {
       '/user/dashboard': { ssr: false },
+      '/user/courses': { ssr: false },
    },
    runtimeConfig: {
       public: {

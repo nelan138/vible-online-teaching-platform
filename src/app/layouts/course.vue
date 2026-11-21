@@ -1,8 +1,8 @@
 <template>
    <div>
-      <UHeader to="/dashboard">
+      <UHeader>
          <template #left>
-            <NuxtLink to="/dashboard" class="shrink-0 font-bold text-xl text-highlighted me-4"> Vible </NuxtLink>
+            <NuxtLink to="/user/dashboard" class="shrink-0 font-bold text-xl text-highlighted me-4"> Vible </NuxtLink>
 
             <UNavigationMenu :items="navigationItems" variant="link" />
          </template>
@@ -12,7 +12,7 @@
 
             <UColorModeButton />
 
-            <UButton icon="lucide:user" variant="ghost" color="neutral" to="/user/profile" />
+            <UButton icon="lucide:user" variant="ghost" color="neutral" aria-label="Profile" disabled />
          </template>
       </UHeader>
 
@@ -109,7 +109,7 @@ const navigationItems = computed<NavigationMenuItem[]>(() => [
    },
    {
       label: 'Notifications',
-      to: '/user/notifications',
+      disabled: true,
    },
 ]);
 </script>

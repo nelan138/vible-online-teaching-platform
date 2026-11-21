@@ -1,4 +1,3 @@
-import type { ContentRecord } from '#shared/types/ContentRecord';
 import { addContent as addCourseContent } from '~/utils/course/addContent';
 
 export const useContentsStore = defineStore('contents', () => {
@@ -6,7 +5,7 @@ export const useContentsStore = defineStore('contents', () => {
    let activeCourseId: string | undefined;
    let latestRequest: Promise<ContentRecord[]> | undefined;
 
-   async function load(courseId: string): Promise<ContentRecord[]> {
+   async function getContents(courseId: string): Promise<ContentRecord[]> {
       const normalizedCourseId = courseId.toLowerCase();
       if (activeCourseId !== normalizedCourseId) {
          activeCourseId = normalizedCourseId;
@@ -28,12 +27,12 @@ export const useContentsStore = defineStore('contents', () => {
       if (activeCourseId !== courseId) return;
 
       // Apply the saved record after an in-flight load so its response cannot replace it.
-      await latestRequest?.catch(() => undefined);
+      if (latestRequest) await tryCatch(latestRequest);
       if (activeCourseId !== courseId || contents.value.some(item => item.id === record.id)) return;
 
       contents.value = [record, ...contents.value]
          .sort((first, second) => second.createdAt.localeCompare(first.createdAt));
    }
 
-   return { contents, load, addContent };
+   return { contents, getContents, addContent };
 });

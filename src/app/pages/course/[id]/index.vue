@@ -116,15 +116,11 @@ const savingContent = ref(false);
 const contentSaveFailed = ref(false);
 
 onMounted(async () => {
-   const records = await contentsStore.load(courseId);
-   const fileLoads = Promise.allSettled(records.map((content) => fileContentsStore.load(courseId, content.id)));
+   const records = await contentsStore.getContents(courseId);
+   const fileLoads = Promise.allSettled(records.map((content) => fileContentsStore.getFileContents(courseId, content.id)));
    courseName.value = await getCourseNameByCourseId(courseId);
    await fileLoads;
 });
-
-function attachFile(contentId: string, file: File) {
-   return fileContentsStore.addFileContent({ courseId, contentId, file });
-}
 
 function openFilePicker(contentId: string) {
    filePickerContentId = contentId;
@@ -145,7 +141,7 @@ async function attachFiles(event: Event) {
    try {
       const failedFiles: string[] = [];
       for (const file of files) {
-         const [, error] = await tryCatch(attachFile(contentId, file));
+         const [, error] = await tryCatch(fileContentsStore.addFileContent({ courseId, contentId, file }));
          if (error) failedFiles.push(file.name);
       }
 

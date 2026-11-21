@@ -1,7 +1,7 @@
 export default defineNuxtRouteMiddleware(async () => {
    if (import.meta.server) return;
 
-   const [user, loadError] = await tryCatch(useUserStore().load());
+   const [user, loadError] = await tryCatch(useUserStore().getUser());
    if (loadError) throw createError({ statusCode: 503, statusMessage: 'Could not verify your account', fatal: true });
 
    if (!user) {

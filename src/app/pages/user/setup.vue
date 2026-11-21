@@ -22,6 +22,7 @@ import type { FormError } from '@nuxt/ui';
 definePageMeta({ layout: 'account' });
 
 const toast = useToast();
+const userStore = useUserStore();
 
 /* *** */
 
@@ -94,7 +95,7 @@ async function onSubmit() {
    if (!userId.value || !state.role) return;
 
    const [, error] = await tryCatch(
-      addUser({
+      userStore.addUser({
          name: state.name.trim(),
          role: state.role,
       })

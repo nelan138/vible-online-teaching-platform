@@ -1,7 +1,4 @@
 import selectContentsByCourseId from '#server/sql/content/selectContentsByCourseId.sql';
-import { useDatabase } from '#server/utils/db';
-import type { ContentRecord } from '#shared/types/ContentRecord';
-import { tryCatch } from '#shared/utils/tryCatch';
 
 type ContentRow = Omit<ContentRecord, 'createdAt'> & { createdAt: Date };
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
