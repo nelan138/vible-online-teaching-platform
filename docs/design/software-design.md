@@ -574,6 +574,7 @@ classDiagram
             +requestJoin(dto: JoinCourseDTO): Promise~EnrollmentDTO~
             +getRoster(courseId: UUID): Promise~List~ParticipantDTO~~
             +approveStudent(courseId: UUID, studentId: UUID): Promise~EnrollmentDTO~
+            +rejectStudent(courseId: UUID, studentId: UUID): Promise~void~
             +removeStudent(courseId: UUID, studentId: UUID): Promise~void~
         }
         class MaterialController {
@@ -598,11 +599,13 @@ classDiagram
             +registerUser(data: RegisterData): Promise~User~
             +authenticate(credentials: Credentials): Promise~AuthTokenBundle~
             +validateSessionToken(token: String): Promise~JWTPayload~
+            +logout(refreshToken: String): Promise~void~
             +hashPassword(plain: String): Promise~String~
             +verifyPassword(plain: String, hash: String): Promise~Boolean~
         }
         class CourseService {
             -courseRepo: CourseRepository
+            -enrollmentRepo: EnrollmentRepository
             +create(teacherId: UUID, data: CourseData): Promise~Course~
             +update(courseId: UUID, teacherId: UUID, data: PartialCourseData): Promise~Course~
             +delete(courseId: UUID, teacherId: UUID): Promise~Boolean~
@@ -616,10 +619,13 @@ classDiagram
             +approveEnrollment(teacherId: UUID, courseId: UUID, studentId: UUID): Promise~Enrollment~
             +rejectEnrollment(teacherId: UUID, courseId: UUID, studentId: UUID): Promise~Boolean~
             +removeStudentFromCourse(teacherId: UUID, courseId: UUID, studentId: UUID): Promise~Boolean~
+            +listRoster(teacherId: UUID, courseId: UUID): Promise~List~Enrollment~~
             +verifyEnrollment(studentId: UUID, courseId: UUID): Promise~Boolean~
         }
         class MaterialService {
             -materialRepo: MaterialRepository
+            -courseRepo: CourseRepository
+            -enrollmentService: EnrollmentService
             -storageService: IStorageClient
             -validator: IFileValidator
             +publishMaterial(courseId: UUID, teacherId: UUID, file: FilePayload, meta: MaterialMeta): Promise~Material~
@@ -629,6 +635,7 @@ classDiagram
         class AssignmentService {
             -assignRepo: AssignmentRepository
             -courseRepo: CourseRepository
+            -enrollmentService: EnrollmentService
             +createAssignment(courseId: UUID, teacherId: UUID, data: AssignmentData): Promise~Assignment~
             +listCourseAssignments(courseId: UUID, userId: UUID): Promise~List~Assignment~~
             +getAssignment(assignmentId: UUID, userId: UUID): Promise~Assignment~
@@ -656,6 +663,8 @@ classDiagram
         }
         class RefreshTokenRepository {
             +create(userId: UUID, tokenHash: String, expiresAt: DateTime): Promise~RefreshToken~
+            +findByTokenHash(tokenHash: String): Promise~RefreshToken~
+            +revoke(tokenHash: String): Promise~Boolean~
         }
         class CourseRepository {
             +findById(id: UUID): Promise~Course~
@@ -673,6 +682,12 @@ classDiagram
             +updateStatus(id: UUID, status: EnrollmentStatus): Promise~Enrollment~
             +delete(id: UUID): Promise~Boolean~
         }
+        class MaterialRepository {
+            +findById(id: UUID): Promise~Material~
+            +listByCourse(courseId: UUID): Promise~List~Material~~
+            +create(material: Material): Promise~Material~
+            +delete(id: UUID): Promise~Boolean~
+        }
         class AssignmentRepository {
             +findById(id: UUID): Promise~Assignment~
             +listByCourse(courseId: UUID): Promise~List~Assignment~~
@@ -688,23 +703,88 @@ classDiagram
         }
     }
 
-    AuthController --> AuthService
-    CourseController --> CourseService
-    RosterController --> EnrollmentService
-    MaterialController --> MaterialService
-    AssignmentController --> AssignmentService
-    AssignmentController --> SubmissionService
+    %% Infrastructure Adapter Package
+    namespace InfrastructureAdapters {
+        class IStorageClient {
+            <<interface>>
+            +putObject(key: String, body: FilePayload): Promise~String~
+            +deleteObject(key: String): Promise~void~
+            +createDownloadUrl(key: String): Promise~String~
+        }
+        class IFileValidator {
+            <<interface>>
+            +validate(file: FilePayload): Boolean
+        }
+        class R2StorageClient {
+            +putObject(key: String, body: FilePayload): Promise~String~
+            +deleteObject(key: String): Promise~void~
+            +createDownloadUrl(key: String): Promise~String~
+        }
+        class FileValidator {
+            +validate(file: FilePayload): Boolean
+        }
+    }
 
+    %% Domain Entity Package (specified in Section 4.3)
+    namespace DomainEntities {
+        class User
+        class Course
+        class Enrollment
+        class Material
+        class Assignment
+        class Submission
+        class GradeFeedback
+    }
+
+    %% Generalization (R2StorageClient and FileValidator implement the interfaces)
+    IStorageClient <|-- R2StorageClient
+    IFileValidator <|-- FileValidator
+
+    %% Dependency: controllers use services through method calls only
+    AuthController ..> AuthService
+    CourseController ..> CourseService
+    RosterController ..> EnrollmentService
+    MaterialController ..> MaterialService
+    AssignmentController ..> AssignmentService
+    AssignmentController ..> SubmissionService
+
+    %% Association: held as private attributes
     AuthService --> UserRepository
     AuthService --> RefreshTokenRepository
     CourseService --> CourseRepository
+    CourseService --> EnrollmentRepository
     EnrollmentService --> EnrollmentRepository
     EnrollmentService --> CourseRepository
+    MaterialService --> MaterialRepository
+    MaterialService --> CourseRepository
+    MaterialService --> EnrollmentService
+    MaterialService --> IStorageClient
+    MaterialService --> IFileValidator
     AssignmentService --> AssignmentRepository
+    AssignmentService --> CourseRepository
+    AssignmentService --> EnrollmentService
     SubmissionService --> SubmissionRepository
     SubmissionService --> AssignmentRepository
     SubmissionService --> CourseRepository
     SubmissionService --> EnrollmentService
+    SubmissionService --> IStorageClient
+    SubmissionService --> IFileValidator
+
+    %% Dependency: repositories and services create or return entities
+    UserRepository ..> User
+    CourseRepository ..> Course
+    EnrollmentRepository ..> Enrollment
+    MaterialRepository ..> Material
+    AssignmentRepository ..> Assignment
+    SubmissionRepository ..> Submission
+    SubmissionRepository ..> GradeFeedback
+    AuthService ..> User
+    CourseService ..> Course
+    EnrollmentService ..> Enrollment
+    MaterialService ..> Material
+    AssignmentService ..> Assignment
+    SubmissionService ..> Submission
+    SubmissionService ..> GradeFeedback
 ```
 
 ---
