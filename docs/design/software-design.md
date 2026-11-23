@@ -577,7 +577,7 @@ classDiagram
             +removeStudent(courseId: UUID, studentId: UUID): Promise~void~
         }
         class MaterialController {
-            +uploadMaterial(courseId: UUID, form: FormData): Promise~MaterialDTO~
+            +uploadMaterial(courseId: UUID, upload: UploadStream): Promise~MaterialDTO~
             +getMaterials(courseId: UUID): Promise~List~MaterialDTO~~
             +deleteMaterial(materialId: UUID): Promise~void~
         }
@@ -585,7 +585,7 @@ classDiagram
             +createAssignment(courseId: UUID, dto: CreateAssignmentDTO): Promise~AssignmentDTO~
             +getAssignments(courseId: UUID): Promise~List~AssignmentDTO~~
             +getAssignmentDetails(assignmentId: UUID): Promise~AssignmentDetailDTO~
-            +submitAssignment(assignmentId: UUID, form: FormData): Promise~SubmissionDTO~
+            +submitAssignment(assignmentId: UUID, upload: UploadStream): Promise~SubmissionDTO~
             +gradeSubmission(submissionId: UUID, dto: GradeDTO): Promise~GradeDTO~
         }
     }
@@ -594,6 +594,7 @@ classDiagram
     namespace DomainServices {
         class AuthService {
             -userRepo: UserRepository
+            -refreshTokenRepo: RefreshTokenRepository
             +registerUser(data: RegisterData): Promise~User~
             +authenticate(credentials: Credentials): Promise~AuthTokenBundle~
             +validateSessionToken(token: String): Promise~JWTPayload~
@@ -612,8 +613,8 @@ classDiagram
             -enrollRepo: EnrollmentRepository
             -courseRepo: CourseRepository
             +requestEnrollment(studentId: UUID, code: String): Promise~Enrollment~
-            +approveEnrollment(teacherId: UUID, enrollId: UUID): Promise~Enrollment~
-            +rejectEnrollment(teacherId: UUID, enrollId: UUID): Promise~Boolean~
+            +approveEnrollment(teacherId: UUID, courseId: UUID, studentId: UUID): Promise~Enrollment~
+            +rejectEnrollment(teacherId: UUID, courseId: UUID, studentId: UUID): Promise~Boolean~
             +removeStudentFromCourse(teacherId: UUID, courseId: UUID, studentId: UUID): Promise~Boolean~
             +verifyEnrollment(studentId: UUID, courseId: UUID): Promise~Boolean~
         }
@@ -635,6 +636,8 @@ classDiagram
         class SubmissionService {
             -submissionRepo: SubmissionRepository
             -assignRepo: AssignmentRepository
+            -courseRepo: CourseRepository
+            -enrollmentService: EnrollmentService
             -storageService: IStorageClient
             -validator: IFileValidator
             +submitWork(assignmentId: UUID, studentId: UUID, file: FilePayload): Promise~Submission~
@@ -650,6 +653,9 @@ classDiagram
             +findById(id: UUID): Promise~User~
             +findByEmail(email: String): Promise~User~
             +create(user: User): Promise~User~
+        }
+        class RefreshTokenRepository {
+            +create(userId: UUID, tokenHash: String, expiresAt: DateTime): Promise~RefreshToken~
         }
         class CourseRepository {
             +findById(id: UUID): Promise~Course~
@@ -675,6 +681,7 @@ classDiagram
         class SubmissionRepository {
             +findById(id: UUID): Promise~Submission~
             +findByAssignmentAndStudent(assignmentId: UUID, studentId: UUID): Promise~Submission~
+            +findGradeBySubmission(submissionId: UUID): Promise~GradeFeedback~
             +listByAssignment(assignmentId: UUID): Promise~List~Submission~~
             +create(submission: Submission): Promise~Submission~
             +upsertGrade(submissionId: UUID, grade: GradeFeedback): Promise~GradeFeedback~
@@ -689,12 +696,15 @@ classDiagram
     AssignmentController --> SubmissionService
 
     AuthService --> UserRepository
+    AuthService --> RefreshTokenRepository
     CourseService --> CourseRepository
     EnrollmentService --> EnrollmentRepository
     EnrollmentService --> CourseRepository
     AssignmentService --> AssignmentRepository
     SubmissionService --> SubmissionRepository
     SubmissionService --> AssignmentRepository
+    SubmissionService --> CourseRepository
+    SubmissionService --> EnrollmentService
 ```
 
 ---
@@ -913,267 +923,400 @@ Notifying students by email or in-app (FR-08A, FR-08B) is a Could-have feature a
 
 ## 4.4 Sequence Diagrams
 
-The sequence diagrams trace the dynamic collaborations realizing 5 key use cases, including alternative/exception flows (`alt` fragments) and message signatures corresponding directly to operations in the class specifications.
+The sequence diagrams trace the dynamic collaborations realizing six key use cases (UC-02, UC-04, UC-06, UC-10, UC-13, UC-14), including alternative and exception flows (`alt` fragments). Message names are the operations declared in Section 4.2 (class diagram) and Section 4.3 (class specifications). Calls on entities (for example `assignment.canAcceptSubmission(now)`) are drawn as self-messages of the service that makes them.
 
-### 4.4.1 Sequence Diagram: UC-02 (User Login & Role Authorization)
+Conventions that apply to every diagram:
+
+- **Guard.** `Guard` stands for the Nitro middleware chain. It runs before the controller and performs the CSRF checks and the HS256 access-token verification (ADR-003, sections 3 and 1). It rejects with `401` (no valid session) or `403` (CSRF failure or wrong role), and on success passes `UserContext {userId, role, v}` to the controller.
+- **Session version.** For mutations, the check `users.token_version = :v` is part of the authorization query that the mutation already runs (ADR-003, section 4.B). It is not drawn as a separate message. A mismatch returns `401`.
+- **Time.** `now` is always the server clock (ASR 5).
+- **Error codes.** File-upload failures use the ADR-004 mapping (`400`, `411`, `413`, `415`). A well-formed request that breaks a business rule returns `422` (invalid value), `409` (state conflict) or `403`/`404` (authorization or missing resource).
+- **Mapping.** Services return entities; controllers map them to DTOs.
+
+### 4.4.1 Sequence Diagram: UC-02 (User Login and Session Issuance)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor User as User (Teacher/Student)
+    participant GD as Guard (CSRF)
     participant AC as AuthController
     participant AS as AuthService
     participant UR as UserRepository
+    participant RR as RefreshTokenRepository
     participant DB as PostgreSQL Database
 
-    User ->> AC: login(LoginDTO {email, password})
-    activate AC
-    AC ->> AS: authenticate({email, password})
-    activate AS
-    AS ->> UR: findByEmail(email)
-    activate UR
-    UR ->> DB: SELECT * FROM users WHERE email = ?
-    activate DB
-    DB -->> UR: User row or null
-    deactivate DB
-    UR -->> AS: User entity or null
-    deactivate UR
+    User ->> GD: POST /api/auth/login (LoginDTO {email, password})
+    alt CSRF check fails
+        GD -->> User: 403 Forbidden
+    else CSRF check passes
+        GD ->> AC: login(LoginDTO)
+        AC ->> AS: authenticate({email, password})
+        AS ->> UR: findByEmail(email)
+        UR ->> DB: SELECT id, password_hash, role, token_version FROM users WHERE email = ?
+        DB -->> UR: User row or none
+        UR -->> AS: User or null
 
-    alt User Not Found or Password Invalid
-        AS ->> AS: verifyPassword(plain, user.passwordHash) == false
-        AS -->> AC: throw InvalidCredentialsException()
-        AC -->> User: 401 Unauthorized ("Invalid email or password")
-    else Valid Credentials
-        AS ->> AS: verifyPassword(plain, user.passwordHash) == true
-        AS ->> AS: generateHS256Token({sub: userId, role, v: user.tokenVersion})
-        AS ->> AS: generateRefreshToken(userId)
-        AS -->> AC: AuthTokenBundle {accessToken, refreshToken, userProfile}
-        deactivate AS
-        AC ->> AC: setHttpOnlyCookie("vible_session", accessToken, {SameSite: "Lax", maxAge: 900})
-        AC ->> AC: setHttpOnlyCookie("vible_refresh", refreshToken, {SameSite: "Lax", path: "/api/auth", maxAge: 604800})
-        AC -->> User: 200 OK (UserProfileDTO {id, fullName, email, role})
+        alt User not found
+            AS ->> AS: verifyPassword(plain, DUMMY_HASH) to equalize timing
+            AS -->> AC: throw InvalidCredentialsException
+            AC -->> User: 401 Unauthorized ("Invalid email or password")
+        else User found
+            AS ->> AS: verifyPassword(plain, user.passwordHash)
+            alt Password mismatch
+                AS -->> AC: throw InvalidCredentialsException
+                AC -->> User: 401 Unauthorized ("Invalid email or password")
+            else Password matches
+                AS ->> AS: sign HS256 access token {sub, role, v: tokenVersion, iat, exp, iss}
+                AS ->> AS: generate opaque refresh token (32 random bytes)
+                AS ->> RR: create(userId, sha256(refreshToken), expiresAt)
+                RR ->> DB: INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+                DB -->> RR: Inserted row
+                RR -->> AS: RefreshToken record
+                AS -->> AC: AuthTokenBundle {accessToken, refreshToken, user}
+                AC ->> AC: Set-Cookie vible_session (HttpOnly, Secure, SameSite=Lax, Path=/, Max-Age=900)
+                AC ->> AC: Set-Cookie vible_refresh (HttpOnly, Secure, SameSite=Lax, Path=/api/auth, Max-Age=604800)
+                AC -->> User: 200 OK (UserProfileDTO {id, fullName, email, role})
+            end
+        end
     end
-    deactivate AC
 ```
 
 ---
 
-### 4.4.2 Sequence Diagram: UC-04 (Create Course & Assign Ownership)
+### 4.4.2 Sequence Diagram: UC-04 (Create Course and Assign Ownership)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Teacher as Teacher
+    participant GD as Guard (CSRF, Auth, Role)
     participant CC as CourseController
-    participant Middleware as AuthGuard & RoleGuard
     participant CS as CourseService
     participant CR as CourseRepository
     participant DB as PostgreSQL Database
 
-    Teacher ->> CC: createCourse(CreateCourseDTO {title, description})
-    activate CC
-    CC ->> Middleware: verify(event)
-    activate Middleware
-    Middleware -->> CC: UserContext {userId, role: TEACHER}
-    deactivate Middleware
-
-    alt User Role is STUDENT (Forbidden)
-        CC -->> Teacher: 403 Forbidden ("Only teachers can create courses")
-    else User is Authorized TEACHER
-        CC ->> CS: create(teacherId, {title, description})
-        activate CS
-        CS ->> CS: generateUniqueInviteCode()
-        CS ->> CR: create(CourseEntity)
-        activate CR
-        CR ->> DB: INSERT INTO courses (id, title, description, teacher_id, invite_code) VALUES (...)
-        activate DB
-        DB -->> CR: Inserted Course row
-        deactivate DB
-        CR -->> CS: Course instance
-        deactivate CR
-        CS -->> CC: CourseDTO
-        deactivate CS
-        CC -->> Teacher: 201 Created (CourseDTO)
+    Teacher ->> GD: POST /api/courses (CreateCourseDTO {title, description})
+    alt No valid session or CSRF failure
+        GD -->> Teacher: 401 Unauthorized or 403 Forbidden
+    else Role is STUDENT
+        GD -->> Teacher: 403 Forbidden ("Only teachers can create courses")
+    else Authenticated TEACHER
+        GD ->> CC: createCourse(CreateCourseDTO) with UserContext {userId, role: TEACHER}
+        alt Title empty or longer than 150 characters
+            CC -->> Teacher: 422 Unprocessable Entity ("Title is required, 1 to 150 characters")
+        else DTO valid
+            CC ->> CS: create(teacherId, {title, description})
+            loop Until insert succeeds (at most 5 attempts)
+                CS ->> CS: generateInviteCode() then course.setInviteCode(code)
+                CS ->> CR: create(Course)
+                CR ->> DB: INSERT INTO courses (id, title, description, teacher_id, invite_code)
+                alt invite_code already exists
+                    DB -->> CR: unique violation
+                    CR -->> CS: throw DuplicateKeyException
+                else Insert succeeded
+                    DB -->> CR: Inserted row
+                    CR -->> CS: Course
+                end
+            end
+            CS -->> CC: Course
+            CC -->> Teacher: 201 Created (CourseDTO)
+        end
     end
-    deactivate CC
 ```
 
 ---
 
-### 4.4.3 Sequence Diagram: UC-06 & UC-10 (Join Course via Invite Code & Teacher Approval)
+### 4.4.3 Sequence Diagrams: UC-06 (Join Course via Invite Code) and UC-10 (Teacher Approval)
+
+**(a) UC-06: Student requests to join**
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Student as Student
+    participant GD as Guard (CSRF, Auth, Role)
     participant RC as RosterController
     participant ES as EnrollmentService
     participant CR as CourseRepository
     participant ER as EnrollmentRepository
-    actor Teacher as Teacher
+    participant DB as PostgreSQL Database
 
-    Student ->> RC: requestJoin(JoinCourseDTO {inviteCode})
-    activate RC
-    RC ->> ES: requestEnrollment(studentId, inviteCode)
-    activate ES
-    ES ->> CR: findByInviteCode(inviteCode)
-    activate CR
-    CR -->> ES: Course or null
-    deactivate CR
+    Student ->> GD: POST /api/enrollments (JoinCourseDTO {inviteCode})
+    alt No valid session or CSRF failure
+        GD -->> Student: 401 Unauthorized or 403 Forbidden
+    else Role is TEACHER
+        GD -->> Student: 403 Forbidden ("Only students can join courses")
+    else Authenticated STUDENT
+        GD ->> RC: requestJoin(JoinCourseDTO) with UserContext
+        RC ->> ES: requestEnrollment(studentId, inviteCode)
+        ES ->> CR: findByInviteCode(inviteCode)
+        CR ->> DB: SELECT * FROM courses WHERE invite_code = ?
+        DB -->> CR: Course row or none
+        CR -->> ES: Course or null
 
-    alt Invite Code Invalid
-        ES -->> RC: throw NotFoundException("Invalid invite code")
-        RC -->> Student: 404 Not Found ("Course code does not exist")
-    else Valid Code
-        ES ->> ER: findByStudentAndCourse(studentId, course.id)
-        activate ER
-        ER -->> ES: existingEnrollment or null
-        deactivate ER
+        alt Invite code unknown
+            ES -->> RC: throw NotFoundException
+            RC -->> Student: 404 Not Found ("Course code does not exist")
+        else Course found
+            ES ->> ER: findByStudentAndCourse(studentId, course.id)
+            ER ->> DB: SELECT * FROM enrollments WHERE student_id = ? AND course_id = ?
+            DB -->> ER: Enrollment row or none
+            ER -->> ES: Enrollment or null
 
-        alt Student Already Enrolled or Pending
-            ES -->> RC: throw ConflictException("Enrollment already requested")
-            RC -->> Student: 409 Conflict ("Already joined or pending")
-        else Fresh Request
-            ES ->> ER: create(Enrollment {status: PENDING})
-            activate ER
-            ER -->> ES: Enrollment (status: PENDING)
-            deactivate ER
-            ES -->> RC: EnrollmentDTO (status: PENDING)
-            RC -->> Student: 202 Accepted ("Join request submitted, awaiting teacher approval")
-            deactivate ES
+            alt Existing enrollment is PENDING or ENROLLED
+                ES -->> RC: throw ConflictException
+                RC -->> Student: 409 Conflict ("Already joined or request pending")
+            else Existing enrollment is REJECTED
+                ES ->> ES: enrollment.reRequest(now)
+                ES ->> ER: updateStatus(enrollment.id, PENDING)
+                ER ->> DB: UPDATE enrollments SET status = PENDING, requested_at = now, decided_at = NULL
+                DB -->> ER: Updated row
+                ER -->> ES: Enrollment (PENDING)
+                ES -->> RC: Enrollment
+                RC -->> Student: 202 Accepted (EnrollmentDTO {status: PENDING})
+            else No enrollment yet
+                ES ->> ER: create(Enrollment {status: PENDING})
+                ER ->> DB: INSERT INTO enrollments (id, course_id, student_id, status)
+                DB -->> ER: Inserted row
+                ER -->> ES: Enrollment (PENDING)
+                ES -->> RC: Enrollment
+                RC -->> Student: 202 Accepted (EnrollmentDTO {status: PENDING})
+            end
         end
     end
-    deactivate RC
+```
 
-    %% Teacher Approval Flow (UC-10)
-    Teacher ->> RC: approveStudent(courseId, studentId)
-    activate RC
-    RC ->> ES: approveEnrollment(teacherId, enrollmentId)
-    activate ES
-    ES ->> ER: updateStatus(enrollmentId, ENROLLED)
-    activate ER
-    ER -->> ES: Updated Enrollment (status: ENROLLED)
-    deactivate ER
-    ES -->> RC: EnrollmentDTO
-    deactivate ES
-    RC -->> Teacher: 200 OK ("Student approved and added to roster")
-    deactivate RC
+**(b) UC-10: Teacher approves a pending request**
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Teacher as Teacher
+    participant GD as Guard (CSRF, Auth, Role)
+    participant RC as RosterController
+    participant ES as EnrollmentService
+    participant CR as CourseRepository
+    participant ER as EnrollmentRepository
+    participant DB as PostgreSQL Database
+
+    Teacher ->> GD: POST /api/courses/:courseId/roster/:studentId/approve
+    alt No valid session or CSRF failure
+        GD -->> Teacher: 401 Unauthorized or 403 Forbidden
+    else Role is STUDENT
+        GD -->> Teacher: 403 Forbidden
+    else Authenticated TEACHER
+        GD ->> RC: approveStudent(courseId, studentId) with UserContext
+        RC ->> ES: approveEnrollment(teacherId, courseId, studentId)
+        ES ->> CR: findById(courseId)
+        CR ->> DB: SELECT * FROM courses WHERE id = ?
+        DB -->> CR: Course row or none
+        CR -->> ES: Course or null
+
+        alt Course not found
+            ES -->> RC: throw NotFoundException
+            RC -->> Teacher: 404 Not Found
+        else Teacher is not the course owner
+            ES ->> ES: course.isOwnedBy(teacherId) is false
+            ES -->> RC: throw ForbiddenException
+            RC -->> Teacher: 403 Forbidden ("Only the course owner can approve students")
+        else Teacher owns the course
+            ES ->> ER: findByStudentAndCourse(studentId, courseId)
+            ER ->> DB: SELECT * FROM enrollments WHERE student_id = ? AND course_id = ?
+            DB -->> ER: Enrollment row or none
+            ER -->> ES: Enrollment or null
+
+            alt No request exists
+                ES -->> RC: throw NotFoundException
+                RC -->> Teacher: 404 Not Found
+            else Status is not PENDING
+                ES ->> ES: enrollment.approve(now) throws InvalidStateError
+                ES -->> RC: throw ConflictException
+                RC -->> Teacher: 409 Conflict ("Request is not pending")
+            else Status is PENDING
+                ES ->> ES: enrollment.approve(now)
+                ES ->> ER: updateStatus(enrollment.id, ENROLLED)
+                ER ->> DB: UPDATE enrollments SET status = ENROLLED, decided_at = now
+                DB -->> ER: Updated row
+                ER -->> ES: Enrollment (ENROLLED)
+                ES -->> RC: Enrollment
+                RC -->> Teacher: 200 OK (EnrollmentDTO {status: ENROLLED})
+            end
+        end
+    end
 ```
 
 ---
 
-### 4.4.4 Sequence Diagram: UC-13 (Submit Assignment with Strict Due Date & File Validation)
+### 4.4.4 Sequence Diagram: UC-13 (Submit Assignment with Strict Due Date and File Validation)
+
+The file is sent as the raw request body (`Content-Length`, `X-File-Name`, declared `Content-Type`) and streamed to R2, as decided in ADR-004. `IFileValidator` performs the header checks and the magic-byte check on the head of the stream before any byte is written to R2. A student who already has a current attempt must remove it first (BR-09, Section 4.3.6).
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Student as Student
+    participant GD as Guard (CSRF, Auth, Role)
     participant AC as AssignmentController
-    participant UV as UploadValidationMiddleware
     participant SS as SubmissionService
-    participant AS as AssignmentService
-    participant Storage as R2StorageClient
+    participant AR as AssignmentRepository
+    participant ES as EnrollmentService
     participant SR as SubmissionRepository
+    participant FV as IFileValidator
+    participant ST as IStorageClient (R2)
     participant DB as PostgreSQL Database
 
-    Student ->> AC: submitAssignment(assignmentId, FormData {file})
-    activate AC
-    AC ->> UV: validateFile(file)
-    activate UV
-    
-    alt File Size > 20 MiB or Empty or Disallowed MIME
-        UV -->> AC: throw InvalidFileException("File exceeds 20 MiB or invalid type")
-        AC -->> Student: 400 Bad Request ("Validation failed: file > 20 MiB or invalid MIME")
-    else Valid File Payload
-        UV -->> AC: FileValidated
-        deactivate UV
+    Student ->> GD: PUT /api/assignments/:assignmentId/submissions (raw body)
+    alt No valid session or CSRF failure
+        GD -->> Student: 401 Unauthorized or 403 Forbidden
+    else Role is TEACHER
+        GD -->> Student: 403 Forbidden
+    else Authenticated STUDENT
+        GD ->> AC: submitAssignment(assignmentId, upload) with UserContext
         AC ->> SS: submitWork(assignmentId, studentId, file)
-        activate SS
-        SS ->> AS: getAssignment(assignmentId)
-        activate AS
-        AS -->> SS: Assignment instance {dueDate, allowLate}
-        deactivate AS
+        SS ->> AR: findById(assignmentId)
+        AR ->> DB: SELECT * FROM assignments WHERE id = ?
+        DB -->> AR: Assignment row or none
+        AR -->> SS: Assignment or null
 
-        alt Submission Past Due and Late Not Allowed
-            SS -->> AC: throw SubmissionClosedException("Assignment deadline has passed")
-            AC -->> Student: 403 Forbidden ("Late submissions not accepted for this assignment")
-        else Submission Permitted
-            SS ->> SS: checkIsLate(currentTime, assignment.dueDate)
-            Note over SS: If currentTime > dueDate => isLate = true, Else => isLate = false
-            SS ->> Storage: streamUpload("assignments/:aid/submissions/:uid/:sid.bin", stream)
-            activate Storage
-            Storage -->> SS: {fileKey, fileUrl}
-            deactivate Storage
+        alt Assignment not found
+            SS -->> AC: throw NotFoundException
+            AC -->> Student: 404 Not Found
+        else Assignment found
+            SS ->> ES: verifyEnrollment(studentId, assignment.courseId)
+            ES -->> SS: true or false
 
-            SS ->> SR: create(SubmissionEntity {fileKey, fileUrl, isLate, submittedAt})
-            activate SR
-            SR ->> DB: INSERT INTO submissions (...) VALUES (...)
-            activate DB
-            alt DB Insert Succeeded
-                DB -->> SR: Inserted row
-                deactivate DB
-                SR -->> SS: Submission instance
-                deactivate SR
-                SS -->> AC: SubmissionDTO {id, isLate, submittedAt}
-                deactivate SS
-                AC -->> Student: 201 Created (SubmissionDTO {isLate: true/false})
-            else DB Insert Failed (Compensating Rollback)
-                DB -->> SR: Error (timeout / constraint failure)
-                activate DB
-                deactivate DB
-                SR -->> SS: throw DatabaseException
-                deactivate SR
-                SS ->> Storage: deleteFile(fileKey)
-                activate Storage
-                Storage -->> SS: Object deleted (Compensating Action)
-                deactivate Storage
-                SS -->> AC: throw SubmissionFailedException
-                AC -->> Student: 500 Internal Error ("Submission failed, storage rolled back")
+            alt Student is not enrolled (BR-04)
+                SS -->> AC: throw ForbiddenException
+                AC -->> Student: 403 Forbidden ("Not enrolled in this course")
+            else Student is enrolled
+                SS ->> SR: findByAssignmentAndStudent(assignmentId, studentId)
+                SR ->> DB: SELECT * FROM submissions WHERE assignment_id = ? AND student_id = ? AND is_current
+                DB -->> SR: Submission row or none
+                SR -->> SS: current Submission or null
+
+                alt Student already has a current attempt (BR-09)
+                    SS -->> AC: throw ConflictException
+                    AC -->> Student: 409 Conflict ("Remove your current submission before submitting again")
+                else No current attempt
+                    SS ->> SS: assignment.canAcceptSubmission(now)
+
+                    alt Past due and late submissions not allowed (BR-07)
+                        SS -->> AC: throw SubmissionClosedException
+                        AC -->> Student: 403 Forbidden ("The deadline has passed")
+                    else Submission accepted for processing
+                        SS ->> FV: validate(file) (headers, then magic bytes on stream head)
+
+                        alt Invalid file (BR-06, NFR-08)
+                            FV -->> SS: throw InvalidFileException
+                            SS -->> AC: InvalidFileException
+                            AC -->> Student: 400 empty, 411 no length, 413 over 20 MiB, or 415 type mismatch
+                        else Valid file
+                            FV -->> SS: StoredFileInfo {size, mimeType, filename}
+                            SS ->> SS: Submission.create(assignment, studentId, fileInfo, now)
+                            Note over SS: Builds fileKey from new UUIDs and sets isLate = assignment.isPastDue(now)
+                            SS ->> ST: put(fileKey, stream, contentType) through FixedLengthStream
+
+                            alt R2 write fails
+                                ST -->> SS: throw StorageException
+                                SS -->> AC: throw SubmissionFailedException
+                                AC -->> Student: 500 Internal Server Error ("Upload failed, please retry")
+                            else R2 write succeeds
+                                ST -->> SS: object stored
+                                SS ->> SR: create(Submission)
+                                SR ->> DB: INSERT INTO submissions (...)
+
+                                alt Insert succeeds
+                                    DB -->> SR: Inserted row
+                                    SR -->> SS: Submission
+                                    SS -->> AC: Submission
+                                    AC -->> Student: 201 Created (SubmissionDTO {id, isLate, submittedAt})
+                                else Insert fails
+                                    DB -->> SR: error (timeout or constraint failure)
+                                    SR -->> SS: throw DatabaseException
+                                    SS ->> ST: delete(fileKey) (best effort, not awaited)
+                                    SS -->> AC: throw SubmissionFailedException
+                                    AC -->> Student: 500 Internal Server Error ("Submission failed, please retry")
+                                    Note over SS,ST: If the delete also fails, the nightly reconciliation job removes the orphan object (ADR-004)
+                                end
+                            end
+                        end
+                    end
+                end
             end
         end
     end
-    deactivate AC
 ```
 
 ---
 
-### 4.4.5 Sequence Diagram: UC-14 (Grade Submission & Provide Feedback)
+### 4.4.5 Sequence Diagram: UC-14 (Grade Submission and Provide Feedback)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Teacher as Teacher
+    participant GD as Guard (CSRF, Auth, Role)
     participant AC as AssignmentController
     participant SS as SubmissionService
     participant SR as SubmissionRepository
+    participant AR as AssignmentRepository
+    participant CR as CourseRepository
     participant DB as PostgreSQL Database
 
-    Teacher ->> AC: gradeSubmission(submissionId, GradeDTO {score: 95.0, feedback: "Great work!"})
-    activate AC
-    AC ->> SS: gradeSubmission(submissionId, teacherId, 95.0, "Great work!")
-    activate SS
-    SS ->> SR: findById(submissionId)
-    activate SR
-    SR -->> SS: Submission instance
-    deactivate SR
+    Teacher ->> GD: PUT /api/submissions/:submissionId/grade (GradeDTO {score, feedback})
+    alt No valid session or CSRF failure
+        GD -->> Teacher: 401 Unauthorized or 403 Forbidden
+    else Role is STUDENT
+        GD -->> Teacher: 403 Forbidden
+    else Authenticated TEACHER
+        GD ->> AC: gradeSubmission(submissionId, GradeDTO) with UserContext
+        AC ->> SS: gradeSubmission(submissionId, teacherId, score, text)
+        SS ->> SR: findById(submissionId)
+        SR ->> DB: SELECT * FROM submissions WHERE id = ?
+        DB -->> SR: Submission row or none
+        SR -->> SS: Submission or null
 
-    alt Score Negative or Exceeds Max Points
-        SS -->> AC: throw ValidationException("Score out of allowable bounds")
-        AC -->> Teacher: 422 Unprocessable Entity ("Score must be between 0 and max points")
-    else Valid Score & Authorized Teacher
-        SS ->> SR: upsertGrade(submissionId, {score, feedback, gradedById: teacherId})
-        activate SR
-        SR ->> DB: INSERT INTO grades (submission_id, score, feedback, graded_by) ... ON CONFLICT DO UPDATE
-        activate DB
-        DB -->> SR: Committed Grade row
-        deactivate DB
-        SR -->> SS: GradeFeedback instance
-        deactivate SR
-        SS -->> AC: GradeDTO
-        deactivate SS
-        AC -->> Teacher: 200 OK (GradeDTO {score, feedback, gradedAt})
+        alt Submission not found
+            SS -->> AC: throw NotFoundException
+            AC -->> Teacher: 404 Not Found
+        else Submission found
+            SS ->> AR: findById(submission.assignmentId)
+            AR -->> SS: Assignment
+            SS ->> CR: findById(assignment.courseId)
+            CR -->> SS: Course
+
+            alt Teacher is not the course owner (BR-08)
+                SS ->> SS: course.isOwnedBy(teacherId) is false
+                SS -->> AC: throw ForbiddenException
+                AC -->> Teacher: 403 Forbidden ("Only the course owner can grade")
+            else Teacher owns the course
+                alt Submission was removed (isCurrent is false)
+                    SS -->> AC: throw ConflictException
+                    AC -->> Teacher: 409 Conflict ("This attempt was removed")
+                else Submission is current
+                    alt assignment.isValidScore(score) is false
+                        SS -->> AC: throw ValidationException
+                        AC -->> Teacher: 422 Unprocessable Entity ("Score must be between 0 and maxScore")
+                    else Score valid
+                        SS ->> SR: findGradeBySubmission(submissionId)
+                        SR -->> SS: GradeFeedback or null
+                        alt No grade yet
+                            SS ->> SS: GradeFeedback.create(submission, assignment, teacherId, score, text, now)
+                        else Grade exists
+                            SS ->> SS: grade.revise(assignment, score, text, now)
+                        end
+                        SS ->> SR: upsertGrade(submissionId, grade)
+                        SR ->> DB: INSERT INTO grades (...) ON CONFLICT (submission_id) DO UPDATE
+                        DB -->> SR: Committed grade row
+                        SR -->> SS: GradeFeedback
+                        SS -->> AC: GradeFeedback
+                        AC -->> Teacher: 200 OK (GradeDTO {score, feedback, gradedAt})
+                    end
+                end
+            end
+        end
     end
-    deactivate AC
 ```
 
 ---
