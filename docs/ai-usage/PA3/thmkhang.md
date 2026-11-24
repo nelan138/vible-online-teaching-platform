@@ -1,0 +1,4 @@
+| # | Member | Tool | Task / purpose | How the output was verified and changed |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Trần Hoàng Minh Khang | Gemini | Generate draw.io XML diagrams and component/container descriptions for C4 System Context (§3.2), Container (§3.3), Component (§3.4), and Class Diagram (§4.2). | Checked all entities, inheritance hierarchies, and external services against the revised PA2 baseline (UC-01 to UC-19) and PA3 Sections 3.1 and 5.2; exported JPEG diagrams to docs/design/. |
+| 2 | Trần Hoàng Minh Khang | Gemini | Draft the Screen Flow diagram (§6.1) and Screen Specifications tables (§6.2). | Verified routes, controls, validation rules, and events against the 12 screens in PA3 Section 6.1, the Figma prototype, and PA2 business rules (BR-01 to BR-09). |
