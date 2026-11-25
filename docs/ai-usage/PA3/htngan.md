@@ -1,0 +1,5 @@
+| # | Member | Tool | Task / purpose | How the output was verified and changed |
+|---|---|---|---|---|
+| 1 | Huỳnh Trung Ngạn| OpenAI Codex | Assist with sequence diagrams for login, course creation, enrollment, submission, and grading (PA3 §4.4, issue #101). | Codex checked UC-06 and UC-10 against PA2 §7. The diagrams show a valid invitation creating a pending enrollment request and the course owner approving the request before the student gains access. |
+| 2 | Huỳnh Trung Ngạn| OpenAI Codex | Assist with state machine diagrams for Enrollment, Assignment, and Submission (PA3 §4.5, issue #106). | Codex checked enrollment approval and rejection against BR-03. For BR-07, Codex verified the deadline transitions and the conditions for submitting or removing work after the deadline. |
+| 3 | Huỳnh Trung Ngạn| OpenAI Codex | Map PA2 requirements to PA3 design elements in the traceability matrix (PA3 §7, issue #113). | The PM reviewed the draft and requested concise design-element names. Codex replaced the explanations with control, class, diagram, and architecture decision names. After PM approval, Codex verified all 28 saved entries against the approved wording. |
