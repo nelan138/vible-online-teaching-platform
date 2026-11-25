@@ -1,0 +1,10 @@
+# AI Usage Log - PA3 (Trương Hiển Long)
+
+| # | Member | Tool | Task / purpose | How the output was verified and changed |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Trương Hiển Long | Gemini | Evaluate Monorepo tooling (pnpm workspaces vs Turborepo vs Nx) and draft ADR-005. | Verified Cloudflare Pages build compatibility (`pnpm --filter @vible/web build`) and root workspace task pipeline caching in Turborepo. |
+| 2 | Trương Hiển Long | Gemini | Decompose domain contracts into @vible/shared and isolate database schemas into @vible/db. | Verified compile-time Zod schema validation reuse across Vue 3 forms and Nitro edge API route handlers. |
+| 3 | Trương Hiển Long | Gemini | Draft ADR-002 comparing Drizzle ORM, Prisma, and MongoDB for Edge PostgreSQL persistence. | Validated benchmark differences on Cloudflare V8 Isolates; emphasized zero-dependency TypeScript query generation and bundle size differences. |
+| 4 | Trương Hiển Long | Gemini | Formulate Architecture Decision Records (ADR-001 and ADR-003) for Edge Runtime and HttpOnly JWT authentication. | Checked against the documented Cloudflare Workers limits (10 ms CPU cap on the Free plan); no benchmark was run, so the CPU and latency risks are recorded in ADR-001 as open items. Also checked against NFR-07 security requirements. Removed Node-specific dependencies in favor of Web Crypto API and standard edge-compatible libraries. |
+| 5 | Trương Hiển Long | Gemini | Generate initial relational database schema tables and column constraints for Section 5 (Data Design) in PostgreSQL syntax. | Verified foreign key CASCADE rules against BR-02 and BR-04; adjusted enrollments table to support status (PENDING, ENROLLED, REJECTED) to match teacher approval workflow. |
+| 6 | Trương Hiển Long | Gemini | Verify 3NF and BCNF normalization proofs and brainstorm database indexing strategy for Section 5.3. | Checked functional dependencies for submissions and grades. Extracted grades into a dedicated table to prevent transitive dependency and avoid NULL columns for ungraded submissions. Added composite unique index on (assignment_id, student_id). |
