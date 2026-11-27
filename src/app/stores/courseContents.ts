@@ -1,10 +1,12 @@
+import { courses } from "~/data/temp/courses";
+
 export const useCourseContentsStore = defineStore("course-contents", {
    state: () => ({
       contents: [] as Content[],
    }),
    actions: {
       loadCourses(teacherId: string) {
-         this.courses = placeholders.filter(
+         this.courses = courses.filter(
             (course) => course.teacherId === teacherId,
          );
       },
