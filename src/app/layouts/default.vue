@@ -6,6 +6,6 @@
          <slot />
       </UMain>
 
-      <VFooter class='mt-24'/>
+      <VFooter />
    </div>
 </template>

@@ -14,6 +14,29 @@
             image="/img/default-card-cover.png"
          />
       </div>
+
+      <VDropdownMenu>
+         <UButton
+            icon="lucide:user-round-plus"
+            label="Invite others"
+            variant="solid"
+            color="info"
+         />
+
+         <UButton
+            v-if="user.role === 'teacher'"
+            icon="lucide:book-plus"
+            label="Add course"
+            variant="solid"
+         />
+
+         <UButton
+            v-if="user.role === 'student'"
+            icon="lucide:log-in"
+            label="Join course"
+            variant="solid"
+         />
+      </VDropdownMenu>
    </UContainer>
 </template>
 
@@ -23,7 +46,7 @@ import type { BadgeProps } from "@nuxt/ui";
 
 const route = useRoute();
 const teacherCoursesStore = useTeacherCoursesStore();
-const user = route.meta.user;
+const user: User = route.meta.user;
 
 /* *** */
 
