@@ -19,8 +19,10 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: "authenticate-user" });
 import type { BadgeProps } from "@nuxt/ui";
+import { enrollments } from "~/data/temp/enrollments";
+
+definePageMeta({ middleware: "authenticate-user" });
 
 const route = useRoute();
 const teacherCoursesStore = useTeacherCoursesStore();
@@ -28,7 +30,7 @@ const user = route.meta.user;
 
 /* *** */
 
-type CourseCard = {
+type Card = {
    key: string;
    to: string;
    title: string;
@@ -36,10 +38,9 @@ type CourseCard = {
    author: {
       name: string;
    };
-   badge?: BadgeProps;
 };
 
-const cards = ref<CourseCard[]>([]);
+const cards = ref<Card[]>([]);
 
 onMounted(async () => {
    if (user.role === "teacher") {
@@ -52,6 +53,23 @@ onMounted(async () => {
          description: course.description,
          author: { name: course.teacherName },
       }));
+   }
+
+   // takes only enrollments where status = 'approved'
+   if (user.role === "student") {
+      cards.value = enrollments
+         .filter(
+            (enrollment) =>
+               enrollment.studentId === user.id &&
+               enrollment.status === "approved",
+         )
+         .map((enrollment) => ({
+            key: enrollment.courseId,
+            to: `/courses/${enrollment.courseId}`,
+            title: enrollment.courseName,
+            description: enrollment.description,
+            author: { name: enrollment.teacherName },
+         }));
    }
 });
 </script>
