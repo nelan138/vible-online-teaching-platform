@@ -11,3 +11,18 @@ Props:
 Slots:
 
 Emits:
+
+- `submit` with `{ email, password }`
+- `googleSignIn` with no payload
+
+## VHeader
+
+Props:
+
+- `title: string`
+
+Slots:
+
+Emits:
+
+- `switch-user` with no payload
