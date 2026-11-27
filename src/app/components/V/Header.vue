@@ -5,7 +5,32 @@
 
          <UColorModeButton />
 
-         <UButton icon="lucide:user" class="border rounded-full p-1" />
+         <UDropdownMenu
+            :content="{
+               align: 'end',
+               side: 'bottom',
+            }"
+         >
+            <UButton icon="lucide:user" class="border rounded-full p-1" />
+
+            <template #content-bottom>
+               <!-- ONLY FOR DEBUGGING, REMOVE LATER  -->
+               <UButton
+                  icon="lucide:arrow-left-right"
+                  label="Switch user"
+                  color="error"
+                  @click="emit('switch-user')"
+               />
+
+               <UButton icon="lucide:log-out" label="Sign out" disabled />
+
+               <UButton
+                  icon="lucide:arrow-up-right-from-circle"
+                  label="My profile"
+                  disabled
+               />
+            </template>
+         </UDropdownMenu>
       </template>
 
       <UNavigationMenu :items="navigationItems" variant="link" />
@@ -14,6 +39,8 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem } from "@nuxt/ui";
+
+const emit = defineEmits<{ "switch-user": [] }>();
 
 defineProps<{
    title: string;
