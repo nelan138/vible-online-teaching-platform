@@ -1,4 +1,5 @@
 import type { User } from "#shared/types/user";
+import { user } from "~/data/temp/user";
 
 declare module "vue-router" {
    interface RouteMeta {
@@ -8,5 +9,5 @@ declare module "vue-router" {
 
 export default defineNuxtRouteMiddleware((to) => {
    // Mock the signed-in teacher until authentication is connected.
-   to.meta.user = { id: "1", name: "Maya Chen", role: "teacher" };
+   to.meta.user = { ...user };
 });
