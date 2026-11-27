@@ -1,2 +1,10 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+@utility text-link {
+   @apply hover:text-info hover:underline;
+}
+
+@utility text-heading-1 {
+   @apply text-2xl font-bold mt-8 mb-4;
+}
