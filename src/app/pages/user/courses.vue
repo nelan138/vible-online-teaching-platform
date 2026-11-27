@@ -17,13 +17,6 @@
 
       <VDropdownMenu>
          <UButton
-            icon="lucide:user-round-plus"
-            label="Invite others"
-            variant="solid"
-            color="info"
-         />
-
-         <UButton
             v-if="user.role === 'teacher'"
             icon="lucide:book-plus"
             label="Add course"
@@ -41,8 +34,10 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: "authenticate-user" });
 import type { BadgeProps } from "@nuxt/ui";
+import { enrollments } from "~/data/temp/enrollments";
+
+definePageMeta({ middleware: "authenticate-user" });
 
 const route = useRoute();
 const teacherCoursesStore = useTeacherCoursesStore();
@@ -50,7 +45,7 @@ const user: User = route.meta.user;
 
 /* *** */
 
-type CourseCard = {
+type Card = {
    key: string;
    to: string;
    title: string;
@@ -59,7 +54,13 @@ type CourseCard = {
    badge?: BadgeProps;
 };
 
-const cards = ref<CourseCard[]>([]);
+const cards = ref<Card[]>([]);
+
+const statusColors = {
+   pending: "warning",
+   approved: "success",
+   rejected: "error",
+} satisfies Record<Enrollment["status"], BadgeProps["color"]>;
 
 onMounted(async () => {
    if (user.role === "teacher") {
@@ -71,6 +72,23 @@ onMounted(async () => {
          description: course.description,
          author: { name: course.teacherName },
       }));
+   }
+
+   if (user.role === "student") {
+      cards.value = enrollments
+         .filter((enrollment) => enrollment.studentId === user.id)
+         .map((enrollment) => ({
+            key: enrollment.courseId,
+            to: `/courses/${enrollment.courseId}`,
+            title: enrollment.courseName,
+            description: enrollment.description,
+            author: { name: enrollment.teacherName },
+            badge: {
+               label: enrollment.status,
+               color: statusColors[enrollment.status],
+               variant: "solid",
+            },
+         }));
    }
 });
 </script>
