@@ -1,7 +1,7 @@
 <template>
    <UFooter
       :ui="{
-         top: 'pt-5 pb-0 lg:pt-5 lg:pb-0',
+         top: 'mt-24 pt-5 pb-0 lg:pt-5 lg:pb-0',
          container: 'max-w-none lg:px-[3.75%] lg:py-6',
          right: 'gap-4',
       }"
