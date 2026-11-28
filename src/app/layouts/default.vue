@@ -2,7 +2,7 @@
    <div>
       <VHeader title="Vible" @switch-user="switchUser" />
 
-      <UMain :key="userStore.user.id">
+      <UMain>
          <slot />
       </UMain>
 
@@ -11,12 +11,14 @@
 </template>
 
 <script setup lang="ts">
-const route = useRoute();
-const userStore = useUserStore();
+import { student, teacher } from "~/data/temp/user";
+
+const user = useState<User>("debug-user", () => teacher);
+
+/* *** */
 
 async function switchUser() {
-   if (route.name === "courses-id") await navigateTo("/user/dashboard");
-   userStore.switchUser();
-   route.meta.user = userStore.user;
+   user.value = user.value.role === "teacher" ? student : teacher;
+   await navigateTo("/");
 }
 </script>

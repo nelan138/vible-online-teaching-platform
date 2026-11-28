@@ -1,6 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-   modules: ["@nuxt/ui", "@nuxt/image", "@nuxt/eslint", "@pinia/nuxt"],
+   modules: [
+      "@nuxt/ui",
+      "@nuxt/content",
+      "@nuxt/image",
+      "@nuxt/eslint",
+      "@pinia/nuxt",
+   ],
    css: ["~/assets/css/main.css"],
    fonts: {
       families: [{ name: "Kalam", provider: "none" }],

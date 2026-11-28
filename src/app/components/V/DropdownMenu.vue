@@ -1,6 +1,6 @@
 <template>
    <UDropdownMenu
-      class="fixed right-[max(0px,(100%-var(--ui-container))/2)] bottom-4 z-10 mr-4 sm:mr-6 lg:mr-8 lg:mb-12"
+      class="fixed right-[max(0px,(100%-var(--ui-container))/2)] bottom-4 z-100 mr-4 sm:mr-6 lg:mr-8 lg:mb-12"
       :ui="{ content: 'overflow-visible bg-transparent shadow-none ring-0' }"
       :content="{
          align: 'end',
