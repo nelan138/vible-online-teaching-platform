@@ -1,7 +1,7 @@
 export type Content = {
    id: string; // uuid
-   coursId: string; // uuid
-   coursName: string;
+   courseId: string; // uuid
+   courseName: string;
 
    name: string;
    description: string;

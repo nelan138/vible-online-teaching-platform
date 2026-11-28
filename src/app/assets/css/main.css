@@ -8,3 +8,7 @@
 @utility text-heading-1 {
    @apply text-2xl font-bold mt-8 mb-4;
 }
+
+@utility text-heading-2 {
+   @apply text-xl font-bold mt-6 mb-3;
+}
