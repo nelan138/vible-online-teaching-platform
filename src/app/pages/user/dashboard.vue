@@ -12,20 +12,17 @@
             :title="card.title"
             :description="card.description"
             :author="card.author"
-            :badge="card.badge"
          />
       </div>
    </UContainer>
 </template>
 
 <script setup lang="ts">
-import type { BadgeProps } from "@nuxt/ui";
-import { enrollments } from "~/data/temp/enrollments";
-
 definePageMeta({ middleware: "authenticate-user" });
 
 const route = useRoute();
 const teacherCoursesStore = useTeacherCoursesStore();
+const studentEnrollmentsStore = useStudentEnrollmentsStore();
 const user = route.meta.user;
 
 /* *** */
@@ -57,12 +54,9 @@ onMounted(async () => {
 
    // takes only enrollments where status = 'approved'
    if (user.role === "student") {
-      cards.value = enrollments
-         .filter(
-            (enrollment) =>
-               enrollment.studentId === user.id &&
-               enrollment.status === "approved",
-         )
+      await studentEnrollmentsStore.loadEnrollments(user.id);
+      cards.value = studentEnrollmentsStore.enrollments
+         .filter((enrollment) => enrollment.status === "approved")
          .map((enrollment) => ({
             key: enrollment.courseId,
             to: `/courses/${enrollment.courseId}`,

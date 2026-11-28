@@ -35,12 +35,12 @@
 
 <script setup lang="ts">
 import type { BadgeProps } from "@nuxt/ui";
-import { enrollments } from "~/data/temp/enrollments";
 
 definePageMeta({ middleware: "authenticate-user" });
 
 const route = useRoute();
 const teacherCoursesStore = useTeacherCoursesStore();
+const studentEnrollmentsStore = useStudentEnrollmentsStore();
 const user: User = route.meta.user;
 
 /* *** */
@@ -54,7 +54,7 @@ type Card = {
    badge?: BadgeProps;
 };
 
-const cards = ref<Card[]>([]);
+const cards = shallowRef<Card[]>([]);
 
 const statusColors = {
    pending: "warning",
@@ -75,20 +75,19 @@ onMounted(async () => {
    }
 
    if (user.role === "student") {
-      cards.value = enrollments
-         .filter((enrollment) => enrollment.studentId === user.id)
-         .map((enrollment) => ({
-            key: enrollment.courseId,
-            to: `/courses/${enrollment.courseId}`,
-            title: enrollment.courseName,
-            description: enrollment.description,
-            author: { name: enrollment.teacherName },
-            badge: {
-               label: enrollment.status,
-               color: statusColors[enrollment.status],
-               variant: "solid",
-            },
-         }));
+      await studentEnrollmentsStore.loadEnrollments(user.id);
+      cards.value = studentEnrollmentsStore.enrollments.map((enrollment) => ({
+         key: enrollment.courseId,
+         to: `/courses/${enrollment.courseId}`,
+         title: enrollment.courseName,
+         description: enrollment.description,
+         author: { name: enrollment.teacherName },
+         badge: {
+            label: enrollment.status,
+            color: statusColors[enrollment.status],
+            variant: "solid",
+         },
+      }));
    }
 });
 </script>

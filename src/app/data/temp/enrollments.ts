@@ -1,4 +1,3 @@
-import type { Enrollment } from "#shared/types/enrollment";
 import { courses } from "./courses";
 import { student } from "./user";
 

@@ -1,4 +1,3 @@
-import type { Course } from "#shared/types/course";
 import { teacher } from "./user";
 
 export const courses: Course[] = [
